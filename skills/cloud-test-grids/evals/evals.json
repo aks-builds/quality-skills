@@ -1,0 +1,88 @@
+{
+  "skill_name": "cloud-test-grids",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We need to test our web app against 5 browsers × 4 OS combinations. Should we use BrowserStack, Sauce Labs, or LambdaTest?",
+      "expected_output": "Should check qa-context.md or ask. Should give a balanced comparison: BrowserStack — broad coverage, mature, expensive; Sauce Labs — strong CI / analytics, enterprise heritage; LambdaTest — usually cheaper, growing fast, less mature ecosystem. For 20 OS×browser combos, all three work. Recommend a 30-day side-by-side pilot of two on the same suite to compare reliability, speed, support quality. Should defer the final pick to qa-context.md (budget, existing relationships, compliance constraints). Should NOT declare a universal winner.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Frames as a balanced trade-off",
+        "Names concrete strengths of each",
+        "Recommends a pilot",
+        "Defers to qa-context.md",
+        "Does not declare a winner"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our staging is internal-only behind a VPN. Tests on BrowserStack get DNS errors.",
+      "expected_output": "Should diagnose: cloud grid can't reach internal hosts without a tunnel. Recommend BrowserStack Local (or Sauce Connect / LambdaTest Tunnel for those providers): run their tunnel binary inside your network, configure the test session with the tunnel identifier. Show the high-level setup pattern. Should mention pinning the tunnel binary version and keeping it running with restart-on-failure (it's a system service in practice). Should warn that some compliance regimes restrict tunnel use — verify with security before deploying.",
+      "assertions": [
+        "Identifies missing tunnel as the cause",
+        "Names provider-specific tunnel (BrowserStack Local, etc.)",
+        "Shows tunnel configuration pattern",
+        "Recommends pinning tunnel binary",
+        "Mentions compliance considerations",
+        "Does not invent tunnel options"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i name my browserstack sessions so i can find failures in the dashboard",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show capability fields: `bstack:options.sessionName` (per-test name) and `bstack:options.buildName` (per-CI-build identifier). Recommend wiring CI variables — `buildName: process.env.GITHUB_RUN_ID` or similar — so every failed session is traceable back to the exact CI run. Should mention `projectName` for filtering by app/repo. Should NOT invent capability names.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names sessionName and buildName fields",
+        "Recommends wiring CI run ID into buildName",
+        "Mentions projectName for filtering",
+        "Does not invent capability fields"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our mobile testing on AWS Device Farm is super expensive. Should we use Firebase Test Lab instead?",
+      "expected_output": "Should give a trade-off. AWS Device Farm: real-device-heavy, AWS-native (IAM, VPC), broader device variety, often pricier per minute. Firebase Test Lab: Google-run, real Android + iOS available, simpler pricing for Android, integrates with Google ecosystem. For Android-heavy testing, Firebase often wins on cost. For iOS-heavy testing, real-device options differ — verify current support. Should suggest measuring: monthly minutes used, real-device vs virtual mix, integration with existing CI. Should NOT auto-recommend the cheaper option without context. Cross-reference test-environment-management for cost discipline.",
+      "assertions": [
+        "Frames as a trade-off",
+        "Names concrete strengths of each",
+        "Recommends measuring actual usage patterns",
+        "Notes Android vs iOS support differences",
+        "Cross-references test-environment-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We're running 4000 real-device tests per month and spending $8K. Where can we cut?",
+      "expected_output": "Should give cost-discipline levers: (1) audit whether each real-device test really needs a real device — most regression can run on emulators / simulators (1/5 to 1/10 the cost); (2) reserve real devices for the small set that genuinely needs them (biometrics, push, camera, perf-sensitive UX); (3) reduce parallel slot count if utilization is below 60%; (4) timeout discipline — hung sessions waste minutes; (5) cancel-on-new-push in CI so obsolete commits don't run; (6) move full real-device suite to nightly, run smoke (5-10 critical flows) on PR; (7) audit OS/device matrix — drop low-traffic combinations. Should recommend tracking spend monthly and re-auditing. Cross-references test-strategy.",
+      "assertions": [
+        "Audits real-device necessity per test",
+        "Recommends emulator/simulator for most regression",
+        "Mentions parallel slot rightsizing",
+        "Mentions timeout discipline",
+        "Recommends smoke-on-PR + full-nightly split",
+        "Recommends pruning low-traffic OS/device cells",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we self-host Selenium Grid instead of paying for BrowserStack?",
+      "expected_output": "Should give an honest cost analysis: self-hosting saves on per-minute fees but adds infra cost, ops time, monitoring, browser-image maintenance, on-call. Self-host wins when: volume is high (thousands of sessions/day), regulatory constraints forbid cloud, you have idle K8s capacity. Cloud wins when: low-to-medium volume, no spare ops capacity, you need real devices / iOS. Recommend doing the math — estimate annual managed cost vs. annual infra + ops cost. Cross-reference selenium-grid for the self-host evaluation. Should NOT auto-recommend self-hosting.",
+      "assertions": [
+        "Frames as cost/opex trade-off",
+        "Names when self-host wins (volume, compliance, capacity)",
+        "Names when cloud wins (low volume, no ops, real devices)",
+        "Recommends doing the math",
+        "Cross-references selenium-grid",
+        "Does not auto-recommend self-host"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "skill_name": "llm-eval-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We just launched a customer-support chatbot built on Claude. We have no evals. Where do we start?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend starting small: (1) define top-5 failure modes you fear (off-topic, hallucination, escalation failures, tone, safety); (2) curate a smoke dataset of 20-50 examples covering each failure mode with expected behavior; (3) use deterministic metrics where they apply (refusal patterns, tool-use correctness, JSON schema validation if structured); (4) add LLM-as-judge with a clear rubric for subjective criteria, using a different model than Claude for the judge; (5) wire into CI on every PR touching prompts / chains; (6) pin Claude model version in eval config; (7) pair with production monitoring. Should warn against starting with 1000 examples — start with 50 high-quality ones. Cross-references production-testing.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends starting small (20-50 examples)",
+        "Recommends defining failure modes first",
+        "Uses deterministic metrics where applicable",
+        "Recommends different model for judge",
+        "Pins model version in eval",
+        "Pairs with production monitoring",
+        "Cross-references production-testing"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our LLM-as-judge says everything is 4.5/5. Is that real?",
+      "expected_output": "Should be skeptical. Possible causes: (1) judge bias — judges often default to high scores when criteria are vague; (2) self-evaluation bias if the judge is the same model family as the evaluated system; (3) rubric too loose — '4.5/5' on 'is this good' is meaningless; (4) dataset too easy — happy-path examples only. Recommend: (1) validate judge against human labels on 50-100 samples — if judge agrees < 80% with humans, the judge is unreliable; (2) use a more specific rubric with explicit criteria (helpfulness, accuracy, on-topic separately); (3) add adversarial / edge cases to the dataset; (4) switch judge to a different model family. Should NOT trust 4.5/5 at face value.",
+      "assertions": [
+        "Is skeptical of the high score",
+        "Names judge bias and self-evaluation bias",
+        "Recommends human-label validation",
+        "Recommends explicit multi-criteria rubric",
+        "Recommends adversarial dataset additions",
+        "Recommends different judge model",
+        "Does not trust the score at face value"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "what metrics should we use for our rag system",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce RAG-specific metrics: (1) **Faithfulness** — does the response cite the retrieved context, or hallucinate beyond it?; (2) **Answer relevance** — does the response actually answer the question asked?; (3) **Context relevance / precision / recall** — did retrieval find the right context?; (4) **Refusal correctness** — does the system refuse when the answer isn't in the knowledge base? Should mention RAGAS / DeepEval / TruLens as frameworks that provide these out of the box. Should warn that 'faithfulness' metrics are LLM-as-judge based — apply judge validation. Cross-references the LLM-as-judge calibration concern.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names faithfulness, answer relevance, context relevance",
+        "Names RAGAS / DeepEval / TruLens",
+        "Mentions refusal correctness",
+        "Warns about judge-validation for these metrics",
+        "Does not invent metric names"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our prompt is identical but the eval scores dropped 15% after we 'upgraded' to a newer model snapshot.",
+      "expected_output": "Should diagnose: this is model drift between snapshots, not a prompt regression. The same prompt against a different model produces different outputs — sometimes meaningfully different on subjective metrics. Recommend: (1) always pin model snapshot version in eval config (not 'claude-latest' or 'gpt-4'); (2) when upgrading model snapshot, run evals against both old and new in parallel; (3) decide whether the 15% drop is real regression or stylistic shift the judge is biased against; (4) consider whether the judge model upgrade itself is contributing — if you upgraded judge AND evaluated model, you have two confounded changes. Should NOT panic and roll back prompts.",
+      "assertions": [
+        "Identifies model drift as cause",
+        "Recommends pinning snapshot version",
+        "Recommends parallel comparison runs",
+        "Considers judge-model confounding",
+        "Refuses panic rollback",
+        "Cross-references feature-flag-testing for safe model upgrades"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should we use OpenAI Evals or LangSmith for our Anthropic-based product?",
+      "expected_output": "Should give a balanced view. OpenAI Evals: open-source framework, originally GPT-focused but model-agnostic; YAML-based, simple. LangSmith: LangChain's commercial platform, integrates tightly with LangChain code, dataset + tracing + eval in one. For an Anthropic-based product not built on LangChain, the choice depends on existing observability investments. Should also mention LangFuse (open-source, provider-neutral), Braintrust, DeepEval as alternatives. Recommend a 30-day pilot with one platform on a representative subset before committing. Should defer to qa-context.md (existing stack, budget, self-host vs SaaS).",
+      "assertions": [
+        "Frames as a trade-off",
+        "Names strengths of each",
+        "Mentions LangFuse / Braintrust / DeepEval alternatives",
+        "Recommends 30-day pilot",
+        "Defers to qa-context.md",
+        "Does not assume LangChain integration is universal"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our prompt-injection tests pass but a customer found a jailbreak in production. What now?",
+      "expected_output": "Should treat this as a healthy outcome: eval suites bound failure rates, they don't eliminate them. Recommend: (1) capture the jailbreak as a regression case in your adversarial dataset; (2) review related attack patterns and add coverage; (3) audit production monitoring — was the attack detected? if not, improve detection (cross-reference production-testing); (4) consider model-level guardrails or pre/post-processing if attack patterns repeat; (5) review the response — was harm done, or did downstream guards catch it? Should reframe: production reveals what evals miss; the goal is to add to the dataset and tighten coverage. Should NOT promise jailbreaks won't recur.",
+      "assertions": [
+        "Reframes as expected outcome",
+        "Adds the attack as a regression case",
+        "Reviews related attack patterns",
+        "Audits production monitoring",
+        "Considers downstream guardrails",
+        "Cross-references production-testing",
+        "Refuses to promise jailbreak prevention"
+      ],
+      "files": []
+    }
+  ]
+}

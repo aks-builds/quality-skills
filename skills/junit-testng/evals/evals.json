@@ -1,0 +1,84 @@
+{
+  "skill_name": "junit-testng",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're starting a new Spring Boot 3 service. Should we use JUnit 5 or TestNG?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend JUnit 5 (Jupiter) for greenfield Spring Boot — it's the integrated default, Spring Boot Test annotations target it, IDE / build tooling assumes it, and modern docs/community gravitate to it. TestNG remains valid for legacy suites or specific feature needs (DataProvider-heavy, dependent test ordering for Selenium suites). Should defer to qa-context.md (existing team experience, legacy code to migrate). Cross-references rest-assured for the paired API testing skill.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends JUnit 5 for Spring Boot 3 greenfield",
+        "Acknowledges TestNG strengths (DataProvider, dependencies)",
+        "Defers to qa-context.md",
+        "Cross-references rest-assured for paired API testing"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our JUnit 5 @BeforeAll method fails with 'methods must be static.' How do we fix it?",
+      "expected_output": "Should explain that `@BeforeAll` (and `@AfterAll`) are run before/after all tests in a class, and JUnit creates a new instance per test by default — hence the static requirement. Two fixes: (1) make the method `static`; or (2) add `@TestInstance(Lifecycle.PER_CLASS)` on the class, which keeps one instance for all tests and allows non-static `@BeforeAll`. Should note trade-off: `PER_CLASS` lets you share more state but tempts you to leak mutable state across tests. Should NOT recommend disabling the check or switching frameworks for this.",
+      "assertions": [
+        "Explains the per-instance behavior",
+        "Names the two fixes (static or @TestInstance(PER_CLASS))",
+        "Mentions trade-off of PER_CLASS",
+        "Does not invent test instance lifecycle modes"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i parametrize a test with 50 input rows from a csv",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `@ParameterizedTest` with `@CsvFileSource(resources = \"/cases.csv\", numLinesToSkip = 1)`. Show a method signature taking the columns as parameters. Should mention `@MethodSource` as the alternative when programmatic generation is cleaner, and `@CsvSource` for small inline sets. Should remind that CSV files live under `src/test/resources/`. Should NOT invent annotation parameters.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Uses @ParameterizedTest with @CsvFileSource",
+        "Mentions numLinesToSkip for headers",
+        "Mentions @MethodSource and @CsvSource alternatives",
+        "Notes src/test/resources/ location",
+        "Does not invent annotation parameters"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our Mockito tests fail with `org.mockito.exceptions.misusing.UnnecessaryStubbingException`. What's wrong?",
+      "expected_output": "Should explain: Mockito's `StrictStubs` mode (the default since Mockito 3) flags stubs that were set up but never invoked — usually meaning the test stubbed too much (the code path didn't hit the stubbed call). Two fixes: (1) remove the unused stub if it really isn't needed; (2) use `lenient().when(...)` to opt that specific stub out; (3) switch the test to relaxed strictness if the strictness pattern doesn't fit. Should advise against routine `lenient()` use — usually the strict mode is correctly telling you the test isn't doing what you think.",
+      "assertions": [
+        "Identifies StrictStubs / default Mockito 3+ behavior",
+        "Recommends removing the stub or using lenient() narrowly",
+        "Discourages broad lenient() use",
+        "Frames the warning as usually correct",
+        "Does not invent Mockito API"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We want Spring Boot integration tests with a real Postgres. What's the right setup?",
+      "expected_output": "Should recommend Testcontainers with `@SpringBootTest` and the `PostgreSQLContainer`. Show: a `@Testcontainers`-annotated test class, `static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(\"postgres:<pinned-version>\")` declared with `@Container`, and `@DynamicPropertySource` to inject the JDBC URL into Spring's environment so the application uses the container. Should mention pinning the Postgres image tag, reusing containers across tests (via `@Container` at class level vs per-test), and cross-reference testcontainers skill. Should use synthetic credentials in any example.",
+      "assertions": [
+        "Recommends Testcontainers + PostgreSQLContainer",
+        "Shows @DynamicPropertySource for Spring property injection",
+        "Pins Postgres image version",
+        "Mentions container scoping (class vs per-test)",
+        "Uses synthetic credentials",
+        "Cross-references testcontainers"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we replace Hamcrest with AssertJ across our codebase?",
+      "expected_output": "Should give a balanced recommendation. AssertJ has clear benefits for new code: fluent chains, much better diagnostic output, autocomplete-driven discovery. Migration cost: rewriting hundreds of assertions, two libraries living together during the transition. Recommend: stop adding new Hamcrest in new code (decide AssertJ as the standard); migrate Hamcrest to AssertJ opportunistically when touching the file for other reasons; don't do a big-bang rewrite for its own sake. Should NOT force the migration.",
+      "assertions": [
+        "Names AssertJ's concrete advantages",
+        "Acknowledges migration cost honestly",
+        "Recommends opportunistic migration",
+        "Refuses to recommend big-bang rewrite",
+        "Cross-references rest-assured (which often pairs with AssertJ)"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "skill_name": "test-data-management",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're a Rails team with FactoryBot. Some tests fail because user emails collide when run in parallel. How do we fix it?",
+      "expected_output": "Should check qa-context.md or ask. Should diagnose: emails are identical across factory calls, parallel processes generate the same factory output. Fix with FactoryBot sequences: `sequence(:email) { |n| \"qa.user-#{n}@example.com\" }` plus optionally namespacing by worker / SecureRandom suffix for cross-process safety. Show the syntax. Should mention that uniqueness is the parallel-safety lynchpin: any identifier referenced by a unique constraint must collide-proof under parallel. Cross-reference rspec and test-environment-management for per-worker DB isolation as the complementary strategy.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Identifies email collision as the cause",
+        "Recommends FactoryBot sequence",
+        "Mentions per-worker namespacing or random suffix for cross-process safety",
+        "Cross-references rspec and test-environment-management",
+        "Uses synthetic emails"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our staging environment uses a nightly Postgres snapshot from production. We just got told we're now under PCI DSS scope. Are we OK?",
+      "expected_output": "Should clearly say no — PCI DSS bars cardholder data outside the cardholder-data environment. A production snapshot in staging that includes any payment card data (even encrypted) is a scope expansion or violation. Recommend: (1) stop using prod snapshots; (2) switch staging to synthetic generation or masked snapshots that pass an explicit data-classification review; (3) use processor test PANs (Stripe / Adyen / etc.) for any test that touches payment flows. Should warn that even if you 'just need realistic data shapes' for perf testing, that data has to be synthetic or thoroughly masked. Should defer the legal/compliance escalation to qa-context.md if a compliance officer exists.",
+      "assertions": [
+        "Clearly identifies PCI risk in current setup",
+        "Recommends stopping prod snapshots",
+        "Suggests synthetic or masked alternatives",
+        "Mentions test PANs for payment flows",
+        "Refers to compliance officer / qa-context.md",
+        "Does not pretend the current setup is acceptable"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i seed an empty postgres for our integration tests",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should mention several layered options: (1) Testcontainers for fresh-Postgres-per-test-class (cross-reference testcontainers); (2) for shared DB with transactional rollback, fixtures or factories loaded inside the transaction; (3) for E2E setups where transactions don't fit, truncate-per-test or schema-per-worker; (4) for reference data (countries, currencies), an immutable seed migration run once. Should recommend factories over hand-written SQL fixtures for most needs. Should use synthetic data in any example.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names Testcontainers as primary option",
+        "Mentions transactional rollback as alternative",
+        "Mentions per-worker schema for parallel safety",
+        "Recommends factories over fixtures",
+        "Cross-references testcontainers"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our test relies on `created_at = Time.now`. It started failing today because of DST.",
+      "expected_output": "Should diagnose time-dependent test brittleness. Recommend: (1) inject a `Clock` abstraction into production code; tests substitute a fake / frozen clock. Or (2) freeze time via `Timecop` (Ruby) / `freezegun` (Python) / `Clock.fixed()` (Java) / fake timers in Jest/Vitest. Show a concrete pattern. Should warn against relative-time hacks (assertions that allow drift by N seconds) — they paper over the issue without fixing it. Cross-reference jest-vitest / pytest / junit-testng for language-specific patterns. Should NOT recommend disabling the test until DST passes.",
+      "assertions": [
+        "Recommends Clock injection or freezing",
+        "Names freezegun / Timecop / Clock.fixed by language",
+        "Refuses to disable until DST passes",
+        "Cross-references unit-test skills",
+        "Warns against relative-time hacks",
+        "Does not invent library APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We need realistic data for our perf tests but synthetic Faker output produces uniform distributions and our prod has heavy skew (top 10% of products get 80% of traffic).",
+      "expected_output": "Should explain that uniform synthetic data hides query-plan issues that show up under skewed distributions. Recommend: (1) generate synthetic data with explicit Zipf / Pareto / log-normal distributions for fields where it matters (product popularity, customer activity, search term frequency); (2) sample the production distribution shape (counts, percentiles) without sampling the data itself; (3) use specialized data generators (Mockaroo, Tonic.ai, custom Python with NumPy / SciPy distribution functions) for realistic scale. Should also mention realistic cardinality on indexed columns and FK locality. Should remind that perf test data is a separate dataset from regression test data — they have different goals.",
+      "assertions": [
+        "Identifies distribution mismatch as the issue",
+        "Names Zipf / Pareto / log-normal as relevant distributions",
+        "Suggests sampling prod distribution shape (not data)",
+        "Mentions cardinality and FK locality",
+        "Separates perf data from regression data",
+        "Cross-references the perf skills"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Audit-time question: how do I check our test repo doesn't have any real PII or credentials committed?",
+      "expected_output": "Should give an audit checklist: (1) `git log -p` greps for common patterns — `@gmail.com`, `@yourcompany.com`, real-looking SSN / credit card patterns, Bearer / Authorization values; (2) tools like `gitleaks`, `trufflehog`, `detect-secrets` to scan history; (3) check committed fixtures (JSON / SQL / YAML) line-by-line for real-looking data; (4) for active staging environments, query the actual data and look for non-synthetic patterns. Should warn that rewriting history (`git filter-repo`, BFG) is necessary if leaks are found, and that secrets must be rotated regardless of removal from history. Should recommend adopting `pre-commit` hooks for these tools going forward.",
+      "assertions": [
+        "Names gitleaks / trufflehog / detect-secrets",
+        "Recommends scanning commit history",
+        "Recommends scanning committed fixture files",
+        "Mentions rotating any leaked secrets",
+        "Recommends pre-commit hooks for prevention",
+        "Acknowledges history rewrite if necessary"
+      ],
+      "files": []
+    }
+  ]
+}

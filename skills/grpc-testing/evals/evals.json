@@ -1,0 +1,88 @@
+{
+  "skill_name": "grpc-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a Go gRPC service. Set up the test layers we should have in CI.",
+      "expected_output": "Should check qa-context.md or ask. Should outline the test pyramid for gRPC: (1) `buf lint` + `buf breaking` against main, gating PRs; (2) in-process tests using `bufconn` with the generated client — fast, isolated, exercise real serialization; (3) a smaller smoke layer over the wire (local TCP, TLS-secured) to catch transport issues; (4) optional `ghz` perf gate for SLO-critical RPCs. Should give a concrete Go bufconn example with `grpc.WithContextDialer` and `grpc.WithTransportCredentials(insecure.NewCredentials())`. Should recommend gating the schema-breaking check before any test job runs. Should NOT invent buf commands.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Names buf lint and buf breaking as the pre-test gate",
+        "Recommends bufconn for in-process tests",
+        "Mentions a smoke-over-wire layer",
+        "Mentions ghz for SLO-gated perf",
+        "Provides accurate Go code example",
+        "Does not invent buf flags or grpc methods"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our tests assert err.Error() == 'order not found'. They're breaking on every minor server change. Better approach?",
+      "expected_output": "Should clearly redirect: assert on the gRPC **status code**, not the message. Show: `st, ok := status.FromError(err); if !ok || st.Code() != codes.NotFound { ... }`. Should mention that gRPC has typed error details via `status.Details()` for assertions that need richer context (e.g., `BadRequest.field_violations`). Should explain that messages are for humans and may be localized or reworded; codes are part of the contract. Should NOT recommend brittle string-matching as a fallback.",
+      "assertions": [
+        "Recommends asserting on codes.X, not message",
+        "Shows status.FromError + st.Code()",
+        "Mentions status.Details() for typed error fields",
+        "Refuses brittle string matching",
+        "Does not invent codes"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i hit our grpc service from the command line for ad-hoc debugging",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `grpcurl`: with reflection, `grpcurl -plaintext localhost:9090 list` lists services; `grpcurl -plaintext -d '{...}' localhost:9090 svc.Method` calls a method. Without reflection, pass `-import-path ./proto -proto svc.proto`. Should also mention `evans` for interactive REPL. Should remind to use synthetic IDs and not include real tokens in command-line invocations (they'll land in shell history).",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names grpcurl and shows list + call invocations",
+        "Mentions -import-path/-proto for non-reflection mode",
+        "Mentions evans as the REPL alternative",
+        "Warns about tokens in shell history",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We have a bidi-streaming RPC. Tests pass for the happy path but production sees failures we can't reproduce. What edge cases should our tests cover?",
+      "expected_output": "Should enumerate the streaming-specific risk surface: (1) client cancellation mid-stream — does the server release resources?; (2) slow consumer / backpressure — does the server block / drop / buffer?; (3) abrupt connection close (network drop) — does the server clean up; does the client retry?; (4) server restart mid-stream — client behavior; (5) deadline expiration — both sides observe and clean up; (6) interleaving order of send/recv — race conditions; (7) auth token expiry mid-stream. Should recommend dedicated tests for each path, using bufconn to control the connection close artificially. Should warn that streaming tests are time-sensitive and benefit from deterministic clocks/control points.",
+      "assertions": [
+        "Lists at least 5 streaming-specific edge cases",
+        "Includes cancellation, backpressure, connection drop, deadline, auth expiry",
+        "Recommends bufconn or similar for artificial connection control",
+        "Warns about timing sensitivity",
+        "Does not assume happy-path tests are sufficient"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "How do we load test our gRPC service for perf SLOs?",
+      "expected_output": "Should recommend `ghz` as the gRPC-native load tool. Show: `ghz --insecure --proto ./proto/x.proto --call svc.Method --data '{...}' -c 50 -n 10000 --rps 200 host:port`. Should mention setting concurrency (`-c`), total requests (`-n`), and target RPS (`--rps`) to reflect production traffic shape. Should recommend gating CI on p95/p99 latency and error rate thresholds (ghz exit code reflects threshold breach). Should remind to load-test against a representative environment, not a hot dev machine. Cross-reference k6 (which has a gRPC module) for teams already standardized on k6, and gatling for advanced perf needs.",
+      "assertions": [
+        "Recommends ghz as the gRPC perf tool",
+        "Shows -c / -n / --rps usage",
+        "Mentions CI gating on percentile thresholds",
+        "Recommends representative-environment testing",
+        "Cross-references k6 and gatling",
+        "Does not invent ghz flags"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our team has Pact for REST already. Can we use Pact for gRPC too?",
+      "expected_output": "Should explain yes — Pact has a protobuf plugin (`pact-plugin-protobuf`) that supports gRPC contract testing. Consumer-side defines expected request/response with matchers; provider-side verifies against the real implementation. Should warn that the Pact protobuf plugin is younger / less feature-rich than REST Pact and that streaming RPC support has historically lagged unary — verify against the plugin's current state before committing. Should suggest starting with one unary RPC pair as a proof of concept. Cross-reference pact-contract-testing.",
+      "assertions": [
+        "Confirms Pact has a protobuf plugin",
+        "Honest about the plugin's maturity vs REST Pact",
+        "Notes streaming support caveat",
+        "Recommends starting with unary PoC",
+        "Cross-references pact-contract-testing",
+        "Does not over-claim feature parity with REST Pact"
+      ],
+      "files": []
+    }
+  ]
+}

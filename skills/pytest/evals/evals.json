@@ -1,0 +1,87 @@
+{
+  "skill_name": "pytest",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up pytest for a FastAPI project with src-layout. We want fixtures for HTTP client and DB session, parametrized tests for input validation, and parallel runs in CI.",
+      "expected_output": "Should check qa-context.md or ask. Should produce: pyproject.toml `[tool.pytest.ini_options]` with `testpaths`, `pythonpath = ['src']`, `addopts = '-ra --strict-markers'`, registered markers, asyncio_mode if applicable. Should suggest tests/ folder layout with conftest.py providing `client` fixture (using `TestClient` or `httpx.AsyncClient` with ASGITransport) and `db_session` fixture (transactional rollback). Should show parametrize for boundary inputs. Should mention `pytest -n auto` via pytest-xdist for parallelism. Should NOT invent pytest config keys.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Uses pyproject.toml [tool.pytest.ini_options]",
+        "Sets pythonpath for src-layout",
+        "conftest with client + db_session fixtures",
+        "Transactional rollback for db_session",
+        "Shows parametrize for boundary inputs",
+        "Mentions pytest-xdist",
+        "Does not invent config keys"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our test passes individually but fails when the whole suite runs. We use a session-scoped fixture that creates a user once.",
+      "expected_output": "Should identify the session-scoped fixture as likely cause: if any test mutates the user, subsequent tests see the mutated state. Fixes: (1) make the fixture immutable / read-only and create per-test users via a function-scoped factory fixture; (2) keep the session fixture but rollback / reset any mutation in afterEach; (3) use a per-test transaction that wraps everything and rolls back. Recommend running with `pytest --random-order` to surface order-dependent tests proactively. Should NOT recommend running with -p no:cacheprovider as the fix.",
+      "assertions": [
+        "Identifies session-scoped fixture mutation as the cause",
+        "Recommends function-scoped factory or per-test rollback",
+        "Mentions pytest --random-order for proactive detection",
+        "Does not invent fix flags",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i mock the current time in a pytest test",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should mention two main approaches: (1) `monkeypatch.setattr('myproject.clock.now', lambda: datetime(2026, 1, 1, tzinfo=timezone.utc))` — works if the code calls a wrapper function rather than `datetime.now()` directly; (2) the `freezegun` package: `@freeze_time('2026-01-01')` decorator or context manager; (3) for code that uses `time.time()` / `datetime.now()` directly, freezegun is usually the simpler path. Should recommend introducing a `clock.now()` wrapper in production code as the cleaner long-term option, so monkeypatching becomes trivial.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names monkeypatch.setattr approach",
+        "Names freezegun for global time freezing",
+        "Recommends a clock.now() wrapper as the architectural fix",
+        "Does not invent freezegun or monkeypatch APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We have 200 tests parametrized with `@pytest.mark.parametrize('email', ['a@b.com', 'c@d.com', ...100 more])` and the test names in output are unreadable.",
+      "expected_output": "Should explain `pytest.param(value, id='descriptive-name')` for readable test IDs. Show: `@pytest.mark.parametrize('email,expected', [pytest.param('qa.user@example.com', True, id='valid-standard'), pytest.param('not-email', False, id='missing-at'), ...])`. For large data sets loaded from JSON, also show generating IDs via a function or list comprehension. Should mention `pytest --collect-only -q` to inspect what test IDs are produced. Should use synthetic emails.",
+      "assertions": [
+        "Introduces pytest.param with id=",
+        "Shows readable id strings",
+        "Mentions ID generation for large data sets",
+        "Mentions pytest --collect-only for inspection",
+        "Uses synthetic emails"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We're using pytest-xdist with -n 8 and tests fail randomly. Without xdist they pass.",
+      "expected_output": "Should identify parallel-safety issues as the cause: (1) shared DB rows — fix with per-worker schemas (xdist provides `worker_id` fixture) or per-test transactions; (2) shared in-memory state — module-level caches, singletons; (3) port conflicts — random-port-allocating fixtures; (4) shared file paths — use `tmp_path` instead of hardcoded /tmp/test.txt; (5) global env vars set by one test, read by another; (6) caching at the SUT layer. Recommend using xdist's `worker_id` fixture for per-worker resource partitioning. Should NOT suggest reverting to -n 0 as the fix.",
+      "assertions": [
+        "Identifies shared state / resource collision as the cause",
+        "Names worker_id fixture for partitioning",
+        "Lists at least 4 concrete shared-state sources",
+        "Recommends tmp_path over hardcoded paths",
+        "Refuses to recommend reverting to serial as the fix",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we replace pytest with unittest for our project?",
+      "expected_output": "Should advise against the replacement in nearly all cases. pytest is a superset of unittest in practice — it runs `unittest.TestCase` subclasses too. pytest gives you better assertion introspection, fixtures, parametrize, plugins. Only reason to stay strictly on unittest is corporate / regulatory requirement to use stdlib only. Recommend keeping unittest tests if they exist and writing new tests in pytest style. Should NOT recommend abandoning pytest for unittest.",
+      "assertions": [
+        "Strongly advises against the replacement",
+        "Notes pytest runs unittest.TestCase",
+        "Names concrete pytest advantages",
+        "Acknowledges niche stdlib-only mandate as the only reason",
+        "Recommends incremental adoption of pytest style"
+      ],
+      "files": []
+    }
+  ]
+}

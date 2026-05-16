@@ -1,0 +1,87 @@
+{
+  "skill_name": "specflow-reqnroll",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're starting a new .NET 8 service with BDD. Should we use SpecFlow or Reqnroll?",
+      "expected_output": "Should check qa-context.md or ask. Should clearly recommend Reqnroll for new projects — SpecFlow has been deprecated by Tricentis and Reqnroll is the actively-maintained open-source successor with a near-drop-in API. Should note Reqnroll integrates with xUnit / NUnit / MSTest the same way SpecFlow did. Should outline minimum NuGet packages (Reqnroll, Reqnroll.xUnit or equivalent, Reqnroll.Tools.MsBuild.Generation, Microsoft.NET.Test.Sdk, xunit). Should defer remaining details to qa-context.md. Should NOT pretend SpecFlow has a long future.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Strongly recommends Reqnroll for new projects",
+        "Explains SpecFlow's deprecation status",
+        "Names the minimum NuGet packages",
+        "Mentions xUnit/NUnit/MSTest compatibility",
+        "Does not pretend SpecFlow is fine long-term"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have an existing SpecFlow 3.x suite with 200 features. What's the Reqnroll migration look like?",
+      "expected_output": "Should outline the typical migration: (1) swap NuGet packages SpecFlow.* → Reqnroll.*; (2) update namespaces TechTalk.SpecFlow → Reqnroll in step definition files; (3) rename specflow.json → reqnroll.json; (4) rebuild — the MSBuild generator runs; (5) run the suite and investigate failures (most pass through unchanged). Should recommend doing one project at a time if you have multiple test projects (the two packages can't coexist in one project). Should suggest pinning Reqnroll to a specific version during migration and validating with a small subset of scenarios before doing the full sweep. Should mention checking the current Reqnroll migration docs for any version-specific gotchas. Should NOT promise zero-effort migration.",
+      "assertions": [
+        "Lists the concrete migration steps",
+        "Notes that the two packages can't coexist in one project",
+        "Recommends per-project migration",
+        "Recommends pinning Reqnroll during migration",
+        "References current Reqnroll docs for current gotchas",
+        "Realistic about migration effort"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i share state between step classes in a scenario",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should recommend constructor dependency injection: register a per-scenario type (e.g., `CheckoutContext`) and inject it via the constructor of each `[Binding]` step class — Reqnroll/SpecFlow's DI provides a fresh instance per scenario. Show: `public class CheckoutSteps { public CheckoutSteps(CheckoutContext ctx) { _ctx = ctx; } ... }`. Should also mention `ScenarioContext` for ad-hoc key/value sharing when typed DI isn't worth setting up. Should warn against static state. Should use synthetic example.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Recommends constructor DI for typed shared state",
+        "Mentions ScenarioContext for ad-hoc cases",
+        "Warns against static state",
+        "Shows concrete code example",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We're getting `BindingException: Ambiguous match` on a Given step.",
+      "expected_output": "Should explain that two or more `[Binding]` classes have step definitions matching the same step text. Reqnroll/SpecFlow fails rather than guess. Fixes: (1) deduplicate — remove the redundant binding; (2) narrow the regex on one of them to disambiguate; (3) tag-scope the binding via `[Scope(Tag = \"...\")]` so only specific scenarios match. Should recommend running `dotnet test --logger console;verbosity=detailed` (or equivalent) to find all conflicting matches. Should NOT recommend ignoring the exception.",
+      "assertions": [
+        "Identifies duplicate binding as the cause",
+        "Names three concrete fixes",
+        "Mentions Scope attribute for tag-narrowing",
+        "Recommends verbose logging to find conflicts",
+        "Does not recommend ignoring the error"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We had SpecFlow+ LivingDoc before. What's the modern Reqnroll equivalent for living-documentation reporting?",
+      "expected_output": "Should explain: SpecFlow+ LivingDoc was a commercial offering that ended along with SpecFlow's wind-down. Reqnroll has its own LivingDoc-style output (verify the current package name in Reqnroll's docs), plus community-driven HTML reporters. Should also mention Allure (cross-runner) and Cucumber Reports (cross-language) as solid alternatives. Recommend evaluating the current state of Reqnroll's reporting story before committing — the ecosystem has been evolving since the SpecFlow transition. Should defer to qa-context.md for reporting requirements.",
+      "assertions": [
+        "Explains SpecFlow+ LivingDoc's end",
+        "Names Reqnroll's reporting story (with caveat about evolving state)",
+        "Mentions Allure and Cucumber Reports as alternatives",
+        "Recommends checking current docs before committing",
+        "Defers to qa-context.md"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our SpecFlow tests pass serial but fail when parallelized. The failures are around shared state.",
+      "expected_output": "Should diagnose the standard parallel-safety issues: (1) `static` fields in step classes — anything `static` is shared across threads; (2) `FeatureContext` mutated from scenarios — meant for read-only feature-level data; (3) shared DB rows / test users with the same identity; (4) `[BeforeTestRun]` initializing global state that scenarios assume is fresh; (5) `Singleton` pattern usage in code under test. Recommend: move all per-scenario state to constructor DI'd types or `ScenarioContext`, partition DB rows per scenario (unique IDs), and audit any `static` keyword in the test project. Cross-reference flaky-test-management.",
+      "assertions": [
+        "Identifies static state as a primary cause",
+        "Mentions FeatureContext mutation as another",
+        "Names DB-row collision and singletons",
+        "Recommends constructor DI + ScenarioContext",
+        "Recommends auditing static usage",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    }
+  ]
+}

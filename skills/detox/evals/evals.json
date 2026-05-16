@@ -1,0 +1,88 @@
+{
+  "skill_name": "detox",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up Detox in our React Native app for iOS and Android. We want simulator/emulator runs locally and headless CI runs on GitHub Actions.",
+      "expected_output": "Should check qa-context.md or ask. Should run `npx detox init`, edit `.detoxrc.js` with both ios.debug and android.debug app configs (build commands for Xcode and Gradle), simulator and emulator devices, and ios.sim.debug + android.emu.debug configurations. Should mention adding testID props to components for stable selection, splitting iOS and Android into separate CI jobs (macOS for iOS, Linux for Android), and using `--headless` in CI. Should pin Detox and RN versions. Should NOT invent .detoxrc keys.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Uses npx detox init",
+        "Names both iOS and Android app configs with build commands",
+        "Mentions testID props for stable selection",
+        "Splits iOS and Android into separate CI jobs",
+        "Uses --headless in CI",
+        "Pins versions",
+        "Does not invent config keys"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Detox test does `await element(by.id('x')).tap()` then immediately `expect(element(by.id('result'))).toBeVisible()`. Sometimes the result isn't there yet. Why doesn't Detox wait?",
+      "expected_output": "Should explain that Detox already waits for the JS bridge / main thread / animations / pending fetches via XMLHttpRequest. If the app uses something Detox doesn't see (custom native modules, raw sockets, deferred work), Detox can't sync on it. Fix: use `waitFor(element(by.id('result'))).toBeVisible().withTimeout(5000)`. Should warn against `sleep` and recommend identifying which async surface isn't being synced — if it's a custom module, file an issue or wrap the work in something Detox recognizes. Should explain that `waitFor` is the explicit-wait equivalent.",
+      "assertions": [
+        "Explains Detox's gray-box sync surfaces",
+        "Identifies unhooked async work as the cause",
+        "Recommends waitFor(...).withTimeout(...) as the fix",
+        "Refuses sleep as the fix",
+        "Suggests reporting / wrapping unsynced async surfaces",
+        "Does not invent Detox APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i scroll a list to find an element that isn't visible yet",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce the `whileElement` pattern: `await waitFor(element(by.id('target'))).toBeVisible().whileElement(by.id('list')).scroll(200, 'down')`. Should explain this scrolls 200 points down at a time and stops when the target becomes visible or the timeout hits. Should also mention `scrollTo('bottom')` for simple cases where the target is the last item. Should NOT invent action methods.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Introduces waitFor + whileElement().scroll() pattern",
+        "Mentions scrollTo('bottom') for simple cases",
+        "Does not invent Detox actions",
+        "Suggests sensible default scroll increments"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our Detox suite leaks state between tests — User A's profile shows up in User B's test. How do we isolate?",
+      "expected_output": "Should explain the isolation primitives: (1) `device.reloadReactNative()` in `beforeEach` — fast, resets JS state but keeps native services; (2) `device.launchApp({ newInstance: true, ... })` — full restart, slower but clean; (3) app-level state reset via launchArgs (the app sees `detoxTesting: true` and clears AsyncStorage / DB before bootstrap); (4) per-test mock data with unique IDs so even shared state doesn't collide. Should recommend reloadReactNative for most tests, launchApp for ones that need a full cold start, and app-side cleanup hooks for stubborn state. Should NOT recommend just hoping for the best.",
+      "assertions": [
+        "Names reloadReactNative and launchApp({newInstance: true}) explicitly",
+        "Mentions launchArgs-driven app-side cleanup",
+        "Recommends unique IDs per test as a defense",
+        "Acknowledges trade-off between cleanup completeness and speed",
+        "Does not invent Detox lifecycle hooks"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We have both Detox and Maestro. When should we pick which?",
+      "expected_output": "Should frame as a trade-off. Detox: gray-box sync, JS-native test code, Jest runner integration, deep RN awareness, full code logic in tests. Maestro: YAML flows, simpler syntax, faster to write basic flows, less powerful for branching logic / data-driven tests, single source for iOS and Android. Recommend: Detox for the regression suite owned by engineers; Maestro for fast smoke flows or QA-led exploratory automation. Defer to qa-context.md (team makeup, complexity of test logic, parallelization budget). Cross-references maestro.",
+      "assertions": [
+        "Frames as trade-off, not a winner",
+        "Names concrete strengths of each",
+        "Recommends Detox for engineer-owned regression",
+        "Recommends Maestro for QA-led or smoke flows",
+        "Defers to qa-context.md",
+        "Cross-references maestro"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our Detox build takes 8 minutes on every PR. How do we speed up CI?",
+      "expected_output": "Should diagnose and recommend: (1) cache the build output between PRs that don't touch native code — split `detox build` (cached) from `detox test` (always runs); (2) only rebuild when iOS / Android folders or relevant configs change; (3) use Detox in release configuration only when needed (debug builds for fast iteration); (4) split iOS and Android into parallel jobs; (5) for the test phase, parallelize via Jest's test sharding across multiple runners. Should warn against caching the simulator/emulator binaries themselves (large, OS-specific). Cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Recommends caching the Detox build output",
+        "Splits build vs test phases",
+        "Recommends conditional rebuild when native folders change",
+        "Suggests Jest sharding for test phase parallelism",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    }
+  ]
+}

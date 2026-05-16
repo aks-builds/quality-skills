@@ -1,0 +1,62 @@
+# Skill Versions
+
+Each skill is versioned independently via the `metadata.version` field in its `SKILL.md` frontmatter. This file is the canonical version manifest.
+
+| Skill | Version |
+|-------|---------|
+| qa-context | 1.0.0 |
+| cypress | 1.0.0 |
+| playwright | 1.0.0 |
+| puppeteer | 1.0.0 |
+| selenium | 1.0.0 |
+| testcafe | 1.0.0 |
+| webdriverio | 1.0.0 |
+| postman-newman | 1.0.0 |
+| rest-assured | 1.0.0 |
+| supertest | 1.0.0 |
+| pytest-api | 1.0.0 |
+| karate | 1.0.0 |
+| pact-contract-testing | 1.0.0 |
+| wiremock | 1.0.0 |
+| graphql-testing | 1.0.0 |
+| grpc-testing | 1.0.0 |
+| k6 | 1.0.0 |
+| jmeter | 1.0.0 |
+| gatling | 1.0.0 |
+| locust | 1.0.0 |
+| artillery | 1.0.0 |
+| appium | 1.0.0 |
+| espresso | 1.0.0 |
+| xcuitest | 1.0.0 |
+| detox | 1.0.0 |
+| maestro | 1.0.0 |
+| jest-vitest | 1.0.0 |
+| pytest | 1.0.0 |
+| junit-testng | 1.0.0 |
+| xunit-nunit | 1.0.0 |
+| go-test | 1.0.0 |
+| rspec | 1.0.0 |
+| cucumber-gherkin | 1.0.0 |
+| specflow-reqnroll | 1.0.0 |
+| behave | 1.0.0 |
+| bdd-anti-patterns | 1.0.0 |
+| test-strategy | 1.0.0 |
+| test-design-techniques | 1.0.0 |
+| test-data-management | 1.0.0 |
+| flaky-test-management | 1.0.0 |
+| test-environment-management | 1.0.0 |
+| security-testing | 1.0.0 |
+| chaos-engineering | 1.0.0 |
+| mutation-testing | 1.0.0 |
+| ci-test-orchestration | 1.0.0 |
+| selenium-grid | 1.0.0 |
+| cloud-test-grids | 1.0.0 |
+| testcontainers | 1.0.0 |
+| test-reporting | 1.0.0 |
+| code-coverage | 1.0.0 |
+| ai-augmented-testing | 1.0.0 |
+| llm-eval-testing | 1.0.0 |
+| feature-flag-testing | 1.0.0 |
+| production-testing | 1.0.0 |
+| accessibility-testing | 1.0.0 |
+| visual-regression | 1.0.0 |

@@ -1,0 +1,84 @@
+{
+  "skill_name": "webdriverio",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up a WebdriverIO v8 project with TypeScript, Mocha, Chrome, and the Selenium Standalone service. Show me the config and folder layout.",
+      "expected_output": "Should check qa-context.md or ask. Should produce a `wdio.conf.ts` with `runner: 'local'`, `framework: 'mocha'`, `maxInstances`, `specs`, `capabilities` for chrome with `goog:chromeOptions` headless args, `services: ['selenium-standalone']`, `baseUrl`, sensible timeouts, and `reporters: ['spec', ['junit', { outputDir }]]`. Should suggest folder layout: `test/specs/`, `test/pageobjects/`, `test/helpers/`. Should remind about installing the matching service package and that v8 is async/await only. Should NOT invent service names.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Produces config with real, documented fields",
+        "Uses goog:chromeOptions namespace correctly",
+        "Includes the selenium-standalone service",
+        "Calls out v8 async/await requirement",
+        "Folder layout reasonable for WDIO"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I'm on WebdriverIO v8 and my tests intermittently fail with 'element not interactable' on a button. I tried `await browser.pause(2000)` and it mostly works. Better fix?",
+      "expected_output": "Should reject `browser.pause` as the fix. Should explain that 'element not interactable' usually means it's not yet displayed, enabled, or clickable. Should recommend `await button.waitForClickable()` or `await button.waitForDisplayed()` depending on cause. Should mention `scrollIntoView()` for off-screen elements. Should warn that arbitrary pauses multiply across the suite and hide systemic issues. Should suggest enabling more verbose logging (`logLevel: 'debug'`) once to see the timing.",
+      "assertions": [
+        "Rejects browser.pause as the fix",
+        "Recommends waitForClickable or waitForDisplayed",
+        "Mentions scrollIntoView for off-screen elements",
+        "Calls out cumulative cost of pauses",
+        "Does not introduce arbitrary sleeps"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "can wdio run web and android tests in the same suite",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should explain: yes, WebdriverIO supports both, but the cleanest pattern is separate config files (`wdio.web.conf.ts`, `wdio.android.conf.ts`) sharing common helpers via imports. Should mention that the Appium service handles Appium lifecycle for mobile and that mobile capabilities go under the `appium:` namespace. Should cross-reference the appium skill for native locator/gesture details. Should NOT pretend a single config is necessarily wrong — but should explain why splitting tends to be clearer.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Confirms web + mobile is supported",
+        "Recommends separate config files as the cleaner pattern",
+        "Mentions @wdio/appium-service and appium: capability namespace",
+        "Cross-references the appium skill"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We want to add visual regression to our WebdriverIO suite. What service or library should we use?",
+      "expected_output": "Should mention `@wdio/visual-service` (built-in) and the third-party Applitools / Percy SDKs as the practical options. Should describe the trade-off: `@wdio/visual-service` is self-managed (baselines live in the repo), Applitools/Percy is hosted (review dashboard, baselines managed). Should suggest checking qa-context.md for vendor preferences and any compliance constraints on sending screenshots to third-party clouds. Should cross-reference the visual-regression skill for deeper trade-off discussion.",
+      "assertions": [
+        "Names @wdio/visual-service as the built-in option",
+        "Names Applitools and Percy as hosted alternatives",
+        "Articulates the trade-off (in-repo baselines vs hosted dashboard)",
+        "Flags the data-sharing consideration",
+        "Cross-references visual-regression skill"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "How do I run my WDIO suite in parallel against Chrome and Firefox simultaneously?",
+      "expected_output": "Should explain that WDIO runs a separate session per capability listed in `capabilities`. Adding a second entry for Firefox runs both in parallel up to `maxInstances`. Should show a two-entry capabilities array (chrome + firefox) and remind the user to install/start a driver capable of both (Selenium Standalone or a Grid). Should call out that `maxInstances` is per-machine; for cross-machine parallelism, shard via CI (cross-reference ci-test-orchestration).",
+      "assertions": [
+        "Shows two capability entries (chrome and firefox)",
+        "Explains maxInstances behavior",
+        "Mentions Selenium Standalone or Grid as the driver layer",
+        "Distinguishes per-machine vs cross-machine parallelism",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "We have a Cucumber-flavored WDIO setup. Where do step definitions go and how do they bind to features?",
+      "expected_output": "Should explain the `@wdio/cucumber-framework` package and config: `framework: 'cucumber'`, `cucumberOpts: { require: ['./test/step-definitions/**/*.ts'], }`. Should describe the convention: `.feature` files in `test/features/`, step definitions in `test/step-definitions/`, and World/hooks in `test/support/`. Should remind the user that Gherkin best practices apply — short, declarative steps; no UI specifics in the feature text. Should cross-reference the cucumber-gherkin skill for Gherkin-level guidance and bdd-anti-patterns.",
+      "assertions": [
+        "Names @wdio/cucumber-framework",
+        "Shows cucumberOpts with require pointing at step-definitions",
+        "Describes a sane folder layout",
+        "Cross-references cucumber-gherkin and bdd-anti-patterns",
+        "Uses real cucumber-framework option names"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "skill_name": "behave",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up behave for a Django app with a checkout feature, environment hooks, and a step file.",
+      "expected_output": "Should check qa-context.md or ask. Should outline: install behave + behave-django, run `python manage.py behave` (which integrates Django test setup), put features under `features/`, steps under `features/steps/`, hooks in `features/environment.py`. Show: a `checkout.feature` with Feature/Background/Scenario, a step module with `@given/@when/@then` decorators using string templates like `{price:f}`, an `environment.py` with `before_all` / `before_scenario` / `after_scenario` (with failure screenshot capture). Should mention behave-django runs each scenario inside a Django transaction for DB isolation. Should use synthetic credentials.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Names behave-django and manage.py behave invocation",
+        "Standard features/ folder structure",
+        "Hooks file with before/after at right scopes",
+        "Failure-artifact capture in after_scenario",
+        "Mentions Django transaction-per-scenario isolation",
+        "Uses synthetic credentials"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Should we use behave or pytest-bdd for our Python BDD?",
+      "expected_output": "Should give a balanced trade-off. behave: separate runner, clear BDD boundary, own ecosystem. pytest-bdd: runs Gherkin inside pytest, get the full fixture/plugin ecosystem, less friction for teams already deep in pytest. Recommend pytest-bdd for teams with significant pytest investment; behave for teams that want a clearly BDD-shaped runner separate from unit tests. Should defer to qa-context.md (existing pytest investment, who authors features, plugin needs). Cross-reference pytest.",
+      "assertions": [
+        "Frames as a trade-off",
+        "Recommends pytest-bdd for pytest-heavy teams",
+        "Recommends behave for a clear BDD boundary",
+        "Defers to qa-context.md",
+        "Cross-references pytest"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i pass a table of items into a step",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show Gherkin data-table syntax under a step (pipe-delimited with header row), and step definition reading `context.table`: `for row in context.table: context.cart.add(row['sku'], int(row['qty']), float(row['price']))`. Should mention `context.text` for doc strings. Should use synthetic SKUs and prices.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows Gherkin data table",
+        "Shows context.table iteration in step",
+        "Mentions context.text for doc strings",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our behave scenarios run serial. 200 features take 40 minutes. Parallel options?",
+      "expected_output": "Should explain that behave doesn't ship native parallel scenario execution. Options: (1) shard at the CI level — split feature files across N workers (one CI job per shard) and aggregate results; (2) GNU `parallel` running multiple behave invocations against feature subsets; (3) migrate to pytest-bdd which inherits pytest-xdist for parallel runs; (4) reduce the suite — many BDD suites are bloated and 50 well-chosen scenarios beat 200 muddled ones. Should mention test-isolation requirements for parallel: no shared DB rows, no shared in-memory state. Cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Acknowledges behave's lack of native parallelism",
+        "Names CI sharding as primary option",
+        "Mentions pytest-bdd as a parallel-capable alternative",
+        "Suggests reviewing whether the suite size is justified",
+        "Calls out isolation requirements",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We set context.user in before_all and scenarios mutate it. Now tests fail randomly.",
+      "expected_output": "Should diagnose: `before_all`-set attributes persist across all scenarios — mutation by one scenario leaks. Fix: (1) set per-scenario state in `before_scenario` (which is scope-aware and cleared after the scenario); (2) for genuinely session-level state (a connection pool, an app instance), make it read-only or use a factory pattern that returns a fresh user per scenario; (3) audit any mutation in step definitions that touches `before_all`-set attributes. Should NOT recommend running serial as the fix. Cross-reference flaky-test-management.",
+      "assertions": [
+        "Identifies before_all state mutation as the cause",
+        "Recommends before_scenario for per-scenario state",
+        "Suggests factory pattern for fresh objects per scenario",
+        "Audits mutation in steps",
+        "Refuses serial-as-fix",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our `@then` steps are mostly `pass` because the developer wrote them and never came back. How do we audit?",
+      "expected_output": "Should recommend a grep-based audit of step files for `pass`-only bodies, plus reviewing whether the step text describes a meaningful outcome that should be asserted. Should explain: a `then` that doesn't assert is worse than no scenario at all because it gives false confidence. Recommend a CI check that flags step functions whose body is just `pass` (a simple lint), and a one-time sweep to either add assertions or delete the misleading scenarios. Should cross-reference bdd-anti-patterns.",
+      "assertions": [
+        "Recommends grep audit for pass-only bodies",
+        "Frames empty thens as worse than no scenario",
+        "Suggests CI lint to prevent regression",
+        "Recommends triage (assert or delete)",
+        "Cross-references bdd-anti-patterns"
+      ],
+      "files": []
+    }
+  ]
+}

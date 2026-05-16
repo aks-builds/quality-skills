@@ -1,0 +1,85 @@
+{
+  "skill_name": "selenium",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're inheriting a Selenium 3 Java suite and want to migrate to Selenium 4. What are the breaking changes we should plan for?",
+      "expected_output": "Should check qa-context.md or ask. Should highlight: (1) JSON Wire Protocol is gone — Selenium 4 is W3C only; (2) `DesiredCapabilities` is deprecated — move to `ChromeOptions` / `FirefoxOptions` / `EdgeOptions`; (3) Selenium Manager auto-downloads drivers — `WebDriverManager` calls can usually be removed; (4) some `Actions` and `Touch` APIs were reshaped; (5) Grid 3 hub/node configs do not work — Grid 4 has a different topology and CLI. Should advise pinning Selenium 4.x and running the existing suite to find concrete deprecation warnings before bulk-editing. Should recommend doing the migration on a branch, not in place.",
+      "assertions": [
+        "Names W3C-only as the headline change",
+        "Calls out DesiredCapabilities deprecation",
+        "Mentions Selenium Manager replacing WebDriverManager",
+        "Calls out Grid 4 incompatibility with Grid 3 configs",
+        "Recommends a branch-based migration",
+        "Does not invent specific method signature changes"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Selenium tests fail sporadically with `ElementClickInterceptedException`. We added `Thread.sleep(2000)` before every click and it mostly works. Is this OK?",
+      "expected_output": "Should clearly say no. Should explain that `ElementClickInterceptedException` means something is on top of the target — a modal, an overlay, a sticky header. The right fix is to wait for the obstruction to disappear (or scroll into view), not to sleep. Should recommend `WebDriverWait` + `ExpectedConditions.elementToBeClickable(...)` and, if appropriate, `((JavascriptExecutor) driver).executeScript(\"arguments[0].scrollIntoView({block: 'center'})\", element)` before the click. Should warn that 2-second sleeps multiply across a suite into hours of waste.",
+      "assertions": [
+        "Rejects Thread.sleep as the fix",
+        "Identifies obstruction as the real cause",
+        "Recommends elementToBeClickable wait",
+        "Mentions scrollIntoView for off-screen elements",
+        "Calls out the cumulative time cost of sleeps"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i run selenium tests on safari",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should explain that Safari support requires macOS with Safari 10+ and `safaridriver` enabled via `safaridriver --enable` (which prompts for admin once). Should show a minimal `SafariDriver` instantiation example in Java or whatever language fits. Should warn that Safari support has historically been the most fragile of the major browsers and that `safaridriver` does not run headless. Should mention that for CI-without-Mac, the practical options are a Mac runner, a Mac cloud provider (Sauce / BrowserStack), or skip Safari and use WebKit via Playwright — cross-reference cloud-test-grids and playwright.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names safaridriver --enable",
+        "Notes no headless Safari",
+        "Mentions Mac cloud provider or Playwright WebKit as alternatives",
+        "Cross-references cloud-test-grids and playwright"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Help me design a page object for our login page. The page has email, password, sign-in button, and a 'forgot password' link.",
+      "expected_output": "Should produce a clean Java (or user-language) page object using `@FindBy` annotations or explicit `By` locators, with: a constructor that takes a `WebDriver` and initializes `PageFactory`, methods named in domain terms (`signInAs(email, password)`, `forgotPassword()`), and explicit return types pointing at the next page. Should use stable selectors (`data-test` or IDs), synthetic example values, and NOT include assertions inside the page object. Should mention that the test should assert on the resulting page state, not the PO.",
+      "assertions": [
+        "Uses data-test or id-based locators, not CSS classes",
+        "Constructor takes WebDriver, initializes PageFactory",
+        "Methods return the next page object",
+        "No assertions inside the PO",
+        "Uses synthetic credentials",
+        "Domain-language method names"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We need to run our Selenium suite against IE 11 because one of our enterprise customers still uses it. How do we set this up?",
+      "expected_output": "Should explain that pure IE 11 standalone support was dropped by Microsoft. The correct modern approach is **IE Mode in Edge**: configure `EdgeOptions` with `setAttribute('ie.edgechromium', true)` and set `setBinaryLocation(...)` for the Edge binary, then drive via `EdgeDriver` with IE-mode-specific capability flags. Should reference the official Selenium IE-Mode docs and avoid inventing exact capability names. Should note IE Mode is Windows-only — CI runner must be Windows. Should advise the user that IE-only support is uncommon now and worth confirming with the customer before investing.",
+      "assertions": [
+        "Identifies IE Mode in Edge as the correct modern path",
+        "Notes Windows-only requirement",
+        "Refers user to official IE-Mode docs rather than fabricating exact capability keys",
+        "Suggests confirming the customer requirement before investing",
+        "Does not pretend standalone IE 11 testing still works"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we still be using Selenium for new projects in 2026, or switch to Playwright?",
+      "expected_output": "Should frame as a trade-off. Selenium strengths: broadest browser/language coverage, IE-mode support, mature grid ecosystem, W3C standard interop. Playwright strengths: modern multi-browser including WebKit, trace viewer, auto-waiting locators, integrated test runner, faster iteration cycle. Should defer the decision to qa-context.md (existing team skill, language constraints, browser matrix, IE requirements, grid investment, hiring market). Should explicitly avoid declaring a winner — both are valid in 2026 for different shapes of project. Should cross-reference playwright skill.",
+      "assertions": [
+        "Frames as trade-off, not a winner",
+        "Names concrete strengths of each",
+        "Highlights IE-mode as a genuine Selenium advantage",
+        "Defers to qa-context.md for the final call",
+        "Cross-references playwright"
+      ],
+      "files": []
+    }
+  ]
+}

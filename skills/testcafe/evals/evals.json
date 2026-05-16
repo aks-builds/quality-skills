@@ -1,0 +1,84 @@
+{
+  "skill_name": "testcafe",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're starting a brand new project and someone suggested TestCafe. We don't have any existing investment. Should we pick it?",
+      "expected_output": "Should be honest: for a brand-new project in 2026 with no constraints, Playwright is usually the stronger pick (multi-browser, trace viewer, test fixtures, more active community, larger hiring pool). TestCafe is a working, mature tool but its momentum has shrunk. Should ask about constraints that might still favor TestCafe — corporate restrictions on WebDriver, an existing TestCafe expert on the team, or specific TestCafe features the user is attached to. Should defer to qa-context.md for the final call. Should NOT pretend TestCafe and Playwright are equivalent in adoption.",
+      "assertions": [
+        "Recommends evaluating Playwright first for greenfield in 2026",
+        "Names concrete reasons (multi-browser, trace, fixtures, hiring)",
+        "Asks for constraints that might still favor TestCafe",
+        "Defers to qa-context.md",
+        "Cross-references playwright"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have a 300-test TestCafe suite and we don't want to migrate. The suite is getting slow (50 minutes). How do we speed it up?",
+      "expected_output": "Should respect the no-migration constraint. Should recommend: (1) `--concurrency 3+` if hardware supports it; (2) use `Role` for auth reuse instead of logging in per test; (3) shard across CI machines (TestCafe `--concurrency` is per-machine — for cross-machine, split the test set and run multiple jobs, cross-reference ci-test-orchestration); (4) audit assertion and selector timeouts (overly long timeouts mask flake and slow the happy path); (5) reduce screenshot/video overhead in CI to failure-only. Should NOT recommend migrating away — the user said no migration.",
+      "assertions": [
+        "Honors the no-migration constraint",
+        "Recommends --concurrency",
+        "Recommends Role for auth reuse",
+        "Recommends sharding across CI",
+        "Cross-references ci-test-orchestration",
+        "Suggests trimming media artifacts to failure-only"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i mock an api response in testcafe",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `RequestMock`: build a mock with `RequestMock().onRequestTo(url).respond(body, statusCode, headers)`, attach it to a fixture/test via `.requestHooks(mock)`. Should show a minimal example. Should mention `RequestLogger` for observation (was this called?), and warn that TestCafe's proxy intercepts requests by URL and that complex matching may need a predicate. Should remind to use synthetic data.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names RequestMock and the onRequestTo + respond pattern",
+        "Shows .requestHooks() attachment",
+        "Mentions RequestLogger for observation",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Tests sign in with the same user every time and the suite is slow. How do I reuse the login?",
+      "expected_output": "Should introduce `Role`: define once with the URL and setup steps, then `t.useRole(role)` at the start of each test. Should explain TestCafe caches state internally — subsequent uses don't replay the setup. Should provide a minimal example with synthetic creds. Should warn that role caches are per-process; if you split tests across processes (concurrency or CI sharding), each process re-runs the role once. Should mention setting `Role.anonymous()` to explicitly drop a role.",
+      "assertions": [
+        "Names Role and useRole",
+        "Shows minimal example with synthetic credentials",
+        "Notes per-process caching behavior",
+        "Mentions Role.anonymous for explicit logout",
+        "Does not invent Role API methods"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our TestCafe tests pass locally but fail on the CI Docker runner. The errors are around browser launch.",
+      "expected_output": "Should diagnose the common causes: (1) browser not installed in the image — use a TestCafe-with-browsers Docker image or install Chrome explicitly; (2) sandbox issues — pass `--no-sandbox` style flags via TestCafe's browser argument syntax; (3) small `/dev/shm` — add `--disable-dev-shm-usage`-equivalent or mount more shm; (4) headless flag mismatch — verify the correct headless mode for the Chrome version. Should suggest running `npx testcafe -L` inside the container to see what TestCafe detects. Should recommend pinning the Docker image tag, not `latest`.",
+      "assertions": [
+        "Identifies browser-not-installed as a common cause",
+        "Mentions sandbox / shm container quirks",
+        "Suggests `testcafe -L` for diagnosis",
+        "Recommends pinning Docker image",
+        "Does not invent flag names"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we migrate from TestCafe to Playwright?",
+      "expected_output": "Should give the honest trade-off. TestCafe has worked, the suite represents real value, migration takes weeks-to-months for a non-trivial suite. Playwright wins on multi-browser breadth, trace viewer, larger ecosystem, active development. Should recommend a small pilot — pick 10-20 tests, convert them, measure: developer time, CI time, flake rate, debugging experience. Decide based on data, not vibes. Should defer to qa-context.md (CI budget, team capacity, business constraints). Should NOT issue a blanket 'yes migrate' or 'no don't migrate'.",
+      "assertions": [
+        "Acknowledges migration cost realistically",
+        "Names Playwright's concrete advantages",
+        "Recommends a small pilot for data-driven decision",
+        "Defers to qa-context.md",
+        "Cross-references playwright"
+      ],
+      "files": []
+    }
+  ]
+}

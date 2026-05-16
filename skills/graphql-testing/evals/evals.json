@@ -1,0 +1,85 @@
+{
+  "skill_name": "graphql-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have an Apollo Server with a growing schema. Tests just check HTTP 200 and a JSON field. What are we missing?",
+      "expected_output": "Should check qa-context.md or ask. Should call out the main gap: 200 OK does not mean success in GraphQL — `body.errors` may be populated. Should recommend adding `expect(body.errors).toBeUndefined()` to success-path tests and asserting on error code/path for failure-path tests. Should recommend adding: (1) a schema-diff CI gate (graphql-inspector or apollo CLI) so breaking schema changes block merges; (2) schema-shape assertions for critical fields (e.g., User.email is `String!`); (3) operation tests for queries/mutations the client actually sends; (4) N+1 detection via the framework's plan/dataloader hooks. Should cross-reference ci-test-orchestration for the schema-diff gate.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Calls out 200 + errors as the main gap",
+        "Recommends schema-diff CI gate",
+        "Suggests schema-shape assertions",
+        "Mentions N+1 detection",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "How do I write a schema-diff check that blocks PRs on breaking changes but allows deprecations?",
+      "expected_output": "Should mention `graphql-inspector` (or apollo schema:check) as the tool. Show a CI step that runs `graphql-inspector diff <head-schema> <base-schema-or-url>` and fails on changes flagged Breaking, while reporting Dangerous changes as warnings (or requiring explicit approval). Should explain the change classifications: Safe (additions), Dangerous (e.g., default value changes), Breaking (removals, type changes on existing fields). Should recommend storing the baseline schema artifact from main and diffing against it in PR CI. Should NOT invent classifier names.",
+      "assertions": [
+        "Names graphql-inspector or apollo schema:check",
+        "Shows a CI step running the diff",
+        "Explains Safe / Dangerous / Breaking classifications",
+        "Recommends storing baseline schema for comparison",
+        "Does not invent classifier or flag names"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i mock the graphql server for our react component tests",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. For Apollo Client, recommend `MockedProvider` from `@apollo/client/testing`: define an array of `{ request: { query, variables }, result: { data } }` mocks and wrap the component. Should warn that operations must match exactly (same query AST, same variables) — small differences silently miss. For schema-wide mocking (any operation), recommend `@graphql-tools/mock` + `addMocksToSchema`. Should mention that mock-only tests test the mock — pair with some real-server coverage. Cross-reference jest-vitest and cypress (for component testing).",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Recommends MockedProvider for Apollo Client",
+        "Mentions exact-match requirement for query+variables",
+        "Mentions graphql-tools/mock for schema-wide mocking",
+        "Warns that tests-against-mock validate the mock",
+        "Cross-references jest-vitest"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our test asserts data.user.email and it passes, but in production the field is sometimes null with an error. Why does the test miss this?",
+      "expected_output": "Should explain that GraphQL returns 200 with a partial response: `data.user` can be present, `data.user.email` can be null, AND `errors[0]` describes the failure. A test that only asserts the field shape (or uses optional chaining) silently passes. Should recommend: (1) explicitly `expect(body.errors).toBeUndefined()` on success cases; (2) for fields that can be null by spec, assert the contract — if the field is non-null in schema, null is a bug; if it's nullable, the test should specify which case it's covering. Should mention that nullable fields are GraphQL's first-class error mechanism — design with that in mind.",
+      "assertions": [
+        "Identifies partial response (200 + data + errors) as the issue",
+        "Recommends asserting on body.errors explicitly",
+        "Distinguishes non-null schema vs nullable schema cases",
+        "Reframes nullability as a design choice, not a bug",
+        "Does not invent GraphQL spec behavior"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We're using Hasura. Should we still write tests?",
+      "expected_output": "Should clearly say yes. Hasura generates resolvers from the schema, but: (1) permission rules (row-level and field-level) are real business logic that needs verification; (2) computed fields and actions/remote schemas contain real code; (3) Hasura's behavior under different JWT claims must be tested for each role; (4) database constraints and triggers can produce errors at the GraphQL boundary that need test coverage. Recommend HTTP-level operation tests against a test Hasura instance with seeded data per role. Should NOT pretend Hasura's generated code is automatically correct.",
+      "assertions": [
+        "Strongly affirms tests are needed",
+        "Calls out permission rules as business logic",
+        "Mentions actions / computed fields / remote schemas",
+        "Suggests role-based test runs",
+        "Refuses 'Hasura is auto-correct' framing"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "We have subscriptions over WebSocket. How do we test them?",
+      "expected_output": "Should explain subscriptions are the least-standardized part of GraphQL testing. Recommend: test server-side via a real WebSocket client (e.g., `graphql-ws`) — open the subscription, trigger the event that should publish, assert the message; cover unhappy paths (dropped connection, reconnect, auth expiry). For client-side, mock the subscription with the framework's testing utility (e.g., `MockSubscriptionLink` in Apollo). Should mention that subscriptions-transport-ws is deprecated in favor of graphql-ws on Apollo v3+. Should warn that subscription testing is often the boundary at which teams switch to end-to-end UI testing — be deliberate about where the line is.",
+      "assertions": [
+        "Names graphql-ws as the test client option for server-side",
+        "Recommends testing dropped/reconnect/auth-expiry paths",
+        "Mentions MockSubscriptionLink for Apollo client tests",
+        "Notes subscriptions-transport-ws is deprecated",
+        "Honest about where E2E may be the better fit"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "skill_name": "artillery",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up an Artillery load test for our REST API. Two phases: ramp from 0 to 100 RPS over 60s, then hold 100 RPS for 5 minutes. SLO: p95 < 250ms, error rate < 1%.",
+      "expected_output": "Should check qa-context.md or ask. Should produce a YAML with `config.target`, `phases` containing a ramp phase (`arrivalRate: 0, rampTo: 100, duration: 60`) and a sustain phase (`arrivalRate: 100, duration: 300`). Should add `config.ensure.thresholds` for `http.response_time.p95: 250` and `maxErrorRate: 1`. Should include a sample scenario with `flow` of HTTP calls. Should mention pinning Artillery version, running with `-o results.json`, generating an HTML report with `artillery report`. Should NOT invent threshold key names.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Uses two phases (ramp + sustain) with correct keys",
+        "Sets ensure.thresholds matching the SLO",
+        "Includes a sample scenario flow",
+        "Recommends -o results.json and artillery report",
+        "Pins Artillery version",
+        "Does not invent threshold keys"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My Artillery run passed even though the API returned 500s. The scenario had `expect: - statusCode: 200`. Why isn't it failing?",
+      "expected_output": "Should explain: by default, `expect` produces stats and warnings but doesn't fail the overall run. Pass/fail is the `config.ensure` block. Fix: add a threshold like `http.codes.500: 0` or `maxErrorRate: 0` to the `ensure.thresholds` so the run exits non-zero on 500s. Should clarify that `expect` is a soft assertion (visible in report) and `ensure` is a hard gate (exit code). Should NOT recommend ignoring the `expect`-style mismatches.",
+      "assertions": [
+        "Distinguishes expect (soft) vs ensure (hard)",
+        "Recommends adding http.codes.500 or maxErrorRate threshold",
+        "Explains the exit-code mechanism",
+        "Refuses to recommend ignoring assertion mismatches",
+        "Does not invent threshold key names"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i login first and use the token in later requests in artillery",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `capture`: a POST to `/auth/login` with `capture` extracting `$.token` into a variable, then later requests using `Authorization: \"Bearer {{ authToken }}\"`. Should show the YAML pattern explicitly. Should mention that for token reuse across many VUs (rather than per-VU login), a `beforeScenario` JS hook can fetch the token once and stash it in context.vars. Should use synthetic credentials.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Introduces capture with $.token",
+        "Shows token reuse in subsequent Authorization header",
+        "Mentions JS hook for shared-token pattern",
+        "Uses synthetic credentials",
+        "Does not invent capture/expect syntax"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We want to load test a Socket.io endpoint. Can Artillery do that?",
+      "expected_output": "Should confirm yes — Artillery has a Socket.IO engine. Should give a minimal YAML showing `config.engine` or scenario-level `engine: socketio`, scenario steps using `emit`, `respond` patterns. Should warn that the exact field names differ from the HTTP engine — verify against the current Socket.IO engine docs. Should remind that Socket.IO load tests need careful think-time and connection-lifecycle management — long-lived connections accumulate quickly. Should NOT pretend the HTTP scenario syntax works for Socket.IO.",
+      "assertions": [
+        "Confirms Socket.IO engine exists",
+        "Mentions engine: socketio configuration",
+        "Warns that scenario syntax differs from HTTP",
+        "Mentions connection-lifecycle / think-time concerns",
+        "Refers user to engine docs for exact keys"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our Artillery tests run locally but on the CI runner we get 'too many open files' under high load.",
+      "expected_output": "Should diagnose ulimit issues: CI runners often have low file descriptor limits. Recommend (1) raising ulimit -n on the runner (e.g., `ulimit -n 65536` before invoking Artillery); (2) checking Node's defaults for outgoing socket limits; (3) reducing arrivalRate or distributing load across multiple workers/runners; (4) verifying connection-pool / keep-alive settings to reduce per-request socket churn. Should mention that this is a load-generation-side issue, not the SUT — diagnostic separates the two.",
+      "assertions": [
+        "Identifies ulimit / fd limits as the cause",
+        "Recommends raising ulimit on the runner",
+        "Mentions keep-alive and connection reuse",
+        "Suggests distributing load if a single runner can't sustain it",
+        "Separates load-generation issues from SUT issues"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use Artillery or k6 for our new Node API?",
+      "expected_output": "Should give a balanced trade-off. Artillery: YAML-first (accessible to non-coders), Node-native, JS hooks for custom logic, AWS Fargate fanout via Artillery Pro. k6: code-first JS with stricter threshold DSL, single binary (no Node runtime needed at runtime), larger ecosystem of integrations / browser-engine maturity, declarative thresholds favor CI gating. Both are reasonable for a Node-team API. Recommend a pilot in each tool with the same scenario; decide based on team comfort, threshold ergonomics, and observability integration. Defer to qa-context.md. Cross-reference k6.",
+      "assertions": [
+        "Frames as a trade-off",
+        "Names concrete strengths of each",
+        "Recommends a pilot",
+        "Defers to qa-context.md",
+        "Cross-references k6"
+      ],
+      "files": []
+    }
+  ]
+}

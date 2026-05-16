@@ -1,0 +1,89 @@
+{
+  "skill_name": "mutation-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have 90% line coverage but still have production bugs. Someone suggested mutation testing. Where do we start?",
+      "expected_output": "Should check qa-context.md or ask. Should explain that 90% line coverage with bugs is exactly the situation mutation testing diagnoses: coverage measures execution, not detection. Should recommend: (1) pick one high-risk module (billing / auth / core domain logic), not the whole codebase; (2) run the language-appropriate tool (PIT for JVM, Stryker for JS/TS, mutmut for Python, etc.); (3) triage surviving mutations — separate real test gaps from equivalent mutations; (4) write tests for the gaps; (5) re-run, track improvement. Should warn against gating on mutation score and against running the full codebase first run. Cross-references code-coverage and the relevant language unit-test skill.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Explains coverage vs mutation distinction",
+        "Recommends starting with one module",
+        "Names the right tool by language",
+        "Recommends triage workflow",
+        "Warns against using as a gate",
+        "Cross-references code-coverage"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Stryker shows 60% mutation score. We're considering setting a 90% threshold as a CI gate. Good idea?",
+      "expected_output": "Should advise against making mutation score a hard CI gate. Chasing 100% leads to over-specified tests that break on any refactor and discourage clean code changes. Equivalent mutations make 100% effectively unreachable. Recommend instead: (1) track mutation score per module and watch the trend — improvement is what matters; (2) use mutation testing on changed files in PR CI as a soft signal (annotated warnings, not blocking); (3) full mutation runs nightly / weekly for trend tracking; (4) reserve any hard gate for high-risk modules and at a realistic threshold (e.g., 80%, not 90% or 100%). Cross-references test-strategy.",
+      "assertions": [
+        "Advises against high mutation-score gate",
+        "Names equivalent-mutation problem",
+        "Recommends trend tracking over absolute threshold",
+        "Suggests soft signal on PR CI",
+        "Hard gates only for high-risk modules at realistic thresholds",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "what's the difference between mutation score and code coverage",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should give a concise explanation: code coverage measures whether tests *executed* a line; mutation score measures whether tests *would fail* if the line were buggy. Example: a test like `assert result is not None` gives 100% line coverage but 0% mutation score on a calculation function — changing `* 0.9` to `* 0.5` still passes. Coverage is necessary but not sufficient. Mutation score is a deeper signal of test strength. Cross-references code-coverage.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Gives a concrete example showing the difference",
+        "Explains coverage is execution-based",
+        "Explains mutation is detection-based",
+        "Cross-references code-coverage"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our Stryker run takes 6 hours. Tests run for 4 min each, and we have hundreds of mutations. How do we make this practical?",
+      "expected_output": "Should diagnose: 6 hours is too long for any frequent run. Recommend: (1) run incrementally on changed code only (`stryker run --since=main`) — most PRs touch a small surface, mutation runs become fast; (2) full mutation testing scheduled nightly or weekly, not per-PR; (3) tune the mutator set — disable mutators that produce mostly equivalents for the project; (4) scope mutation testing to business-logic modules, not all of them (skip UI glue, config, generated code); (5) ensure coverage analysis mode is enabled in Stryker so it only runs tests that could kill each mutation. Should warn that 4-minute test suite is the deeper issue — investigate suite speed (cross-reference flaky-test-management and ci-test-orchestration).",
+      "assertions": [
+        "Recommends incremental / since-main runs",
+        "Recommends scheduled full runs",
+        "Recommends tuning the mutator set",
+        "Recommends scoping to business logic",
+        "Mentions coverage-analysis mode for performance",
+        "Flags slow test suite as deeper issue",
+        "Cross-references performance-related skills"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We ran mutation testing and have 50 surviving mutants. Half look like they're 'equivalent.' How do I tell?",
+      "expected_output": "Should explain equivalent mutations and how to identify them: an equivalent mutation produces semantically identical behavior despite a syntactic change. Examples: `i < arr.length` → `i <= arr.length - 1`; `if (x != null)` → `if (!(x == null))`; removing a debug log call. To triage: (1) for each surviving mutation, manually inspect — could ANY test, in any reachable input, distinguish original from mutant?; (2) if no, mark as equivalent and exclude (tools support per-line / per-mutator suppressions); (3) if yes, the test gap is real — write a test. Should warn that aggressively chasing equivalents wastes time; the goal is to find real test gaps, not perfect kill rate.",
+      "assertions": [
+        "Defines equivalent mutations with examples",
+        "Provides manual triage approach",
+        "Names tool-level suppressions for confirmed equivalents",
+        "Distinguishes equivalent from genuine gap",
+        "Warns against perfectionism",
+        "Does not invent suppression APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we run mutation testing for our React component tests?",
+      "expected_output": "Should give a nuanced answer. UI component tests are often dominated by rendering glue rather than logic — mutation testing on JSX / prop wiring tends to produce noise and equivalents. Where it pays off: components with calculation / state-derivation logic (price formatting, validation, conditional rendering based on complex predicates). Where it doesn't: pure presentational components, glue components, layout. Recommend scoping mutation testing to the logic-heavy modules (hooks, reducers, utility functions, validators) and skipping rendering-heavy components. Cross-reference jest-vitest and test-design-techniques.",
+      "assertions": [
+        "Gives nuanced answer about UI components",
+        "Distinguishes logic-heavy from glue components",
+        "Recommends scoping to logic-heavy modules",
+        "Cross-references jest-vitest",
+        "Does not blanket-recommend or reject"
+      ],
+      "files": []
+    }
+  ]
+}

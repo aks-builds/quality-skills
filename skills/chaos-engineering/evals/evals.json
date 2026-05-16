@@ -1,0 +1,87 @@
+{
+  "skill_name": "chaos-engineering",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our team wants to adopt chaos engineering. We're a 6-service Kubernetes shop with basic Datadog dashboards. Where do we start?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend a staged approach: (1) confirm observability maturity — basic Datadog dashboards alone may be insufficient; need SLOs and well-tuned alerts; (2) start with Toxiproxy in integration tests for in-process fault injection (latency between service and its DB) — low risk, immediate learning about timeout/retry behavior; (3) introduce Chaos Mesh in staging for K8s-native pod/network experiments; (4) run a first game day against staging with explicit hypothesis, blast radius, abort criteria; (5) only after multiple successful staging game days, plan production chaos with small blast radius. Should NOT recommend production chaos from day one. Cross-reference production-testing and test-environment-management.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Confirms observability prerequisite",
+        "Starts with Toxiproxy in integration tests",
+        "Moves to Chaos Mesh in staging",
+        "Recommends game day with hypothesis/blast/abort",
+        "Defers production until staging matures",
+        "Cross-references production-testing and test-environment-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Should we just kill pods randomly in production like Chaos Monkey?",
+      "expected_output": "Should advise caution: random pod kills work for Netflix because they've earned the right — mature observability, SLOs, error budgets, blameless culture, incident response capacity. Most teams haven't. Recommend earning the right first: validate redundancy in staging, run game days, build the observability + alerting that lets you detect collateral damage. After that, automated production chaos with strict blast radius (one pod, low-traffic window initially) is reasonable. Should NOT pretend the Netflix pattern transfers to any team without the surrounding maturity. Cross-reference the practice-building section.",
+      "assertions": [
+        "Advises caution about copying Netflix pattern",
+        "Names prerequisites (observability, SLOs, error budgets, blameless culture)",
+        "Suggests earning the right via staging maturation",
+        "Approves of carefully-scoped production chaos eventually",
+        "Does not encourage random destruction"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i test that our circuit breaker works",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should recommend Toxiproxy in an integration test: place Toxiproxy between the service and its dependency, configure latency / failure / timeout via Toxiproxy's API, drive the system, assert the circuit breaker opens / closes as expected. Show a minimal example pattern (Python pytest with toxiproxy-python client, or equivalent). Should also mention WireMock for HTTP-level dependency faking (cross-reference). Should warn: testing a circuit breaker in production via chaos is also valid, but the integration test is faster, repeatable, and lives next to the code. Cross-references flaky-test-management and wiremock.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Recommends Toxiproxy for integration tests",
+        "Shows minimal test pattern",
+        "Mentions WireMock as HTTP-level alternative",
+        "Cross-references wiremock",
+        "Recommends integration tests over production-only verification"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We ran a chaos experiment in staging and our redundancy didn't work — secondary DB didn't take over. Now what?",
+      "expected_output": "Should treat this as a successful learning outcome — chaos surfaced a real gap. Recommend: (1) blameless retrospective on why failover didn't work (config, replication lag, DNS, health checks, etc.); (2) file remediation items with owners; (3) DO NOT promote this experiment to production until staging passes consistently; (4) consider whether other systems make the same redundancy assumption and inherit the same gap; (5) when remediated, re-run the experiment to confirm. Should reframe the finding as the *point* of chaos engineering. Cross-reference flaky-test-management for the broader 'surface latent bugs' framing.",
+      "assertions": [
+        "Reframes the finding as success",
+        "Recommends blameless retrospective",
+        "Recommends remediation with owners",
+        "Defers production experiment until remediation",
+        "Checks for inherited assumption in other systems",
+        "Recommends re-run after remediation"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should chaos experiments inject failures into our database?",
+      "expected_output": "Should be cautious. DB chaos = data integrity risk. For stateless databases (cache layer, Redis) — yes, with care. For systems of record (Postgres / MySQL / Mongo primary) — only if (a) replication / failover is proven in staging, (b) you have point-in-time recovery, (c) you have an explicit abort criterion on data-integrity alerts, (d) blast radius is one read replica or one node, never the primary across all replicas. Many teams skip primary DB chaos and instead test the DB-failure path via the application layer (drop network to primary, see if app fails over) — same lesson, less catastrophic blast radius. Should warn that DB write-path chaos can corrupt state in ways with no rollback.",
+      "assertions": [
+        "Distinguishes stateless from system-of-record DB chaos",
+        "Lists prerequisites for primary DB chaos",
+        "Suggests network-level partition as safer alternative",
+        "Warns about data corruption with no rollback",
+        "Recommends careful abort criteria"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Compare chaos engineering with regular load testing — when do we need each?",
+      "expected_output": "Should explain the trade-off. Load testing (k6 / gatling / jmeter) validates capacity and latency under expected and peak traffic — answers 'can we handle the load.' Chaos engineering validates resilience under failure — answers 'how do we behave when something breaks.' Both belong. Run load tests on schedule against a perf env; run chaos experiments in stages from local Toxiproxy through staging game days to production. They can compose: chaos under load (latency injection during a load test) tests behavior under combined stress. Defer to qa-context.md for prioritization. Cross-references k6/gatling/jmeter and test-strategy.",
+      "assertions": [
+        "Distinguishes load (capacity) from chaos (resilience under failure)",
+        "Notes both belong",
+        "Mentions composing them (chaos under load)",
+        "Defers to qa-context.md",
+        "Cross-references perf skills and test-strategy"
+      ],
+      "files": []
+    }
+  ]
+}

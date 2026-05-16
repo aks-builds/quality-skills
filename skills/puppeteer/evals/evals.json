@@ -1,0 +1,85 @@
+{
+  "skill_name": "puppeteer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We need to generate a PDF invoice from an HTML page once a day. Write me a Puppeteer script with reasonable defaults.",
+      "expected_output": "Should check qa-context.md or ask about deployment. Should produce a Node script that launches headless Chrome, navigates to the HTML page, waits for content to be ready (e.g., `networkidle2` or a specific selector), and calls `page.pdf()` with `format: 'A4'`, `printBackground: true`, and reasonable margins. Should remind that PDF requires headless. Should include a try/finally with `await browser.close()`. Should use synthetic invoice numbers / customer names in any example. Should mention `headerTemplate` / `footerTemplate` as options if the user wants them. Should NOT invent option names.",
+      "assertions": [
+        "Launches with headless: 'new' (or equivalent current default)",
+        "Calls page.pdf() with documented options",
+        "Uses try/finally for browser cleanup",
+        "Notes that PDF requires headless mode",
+        "Uses synthetic invoice data",
+        "Does not invent option names"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I'm writing a test suite in Puppeteer. How do I parallelize and add retries?",
+      "expected_output": "Should clearly redirect: Puppeteer is not a test framework — there's no built-in parallelism, retry, fixtures, or reporter ecosystem. Should recommend Playwright (same DevTools Protocol lineage, drop-in for most use cases, with `@playwright/test` providing fixtures, retries, sharding, traces). Should outline what migration looks like at a high level: `puppeteer.launch` → `browser.newContext` + `context.newPage`; `page.click` etc. translate almost directly; assertions become Playwright's web-first `expect(locator)...`. Should cross-reference the playwright skill. If the user insists on Puppeteer, should mention community runners like Jest + jest-puppeteer but note they are not actively maintained at the same cadence.",
+      "assertions": [
+        "Redirects clearly to Playwright for test-suite use cases",
+        "Outlines migration cost realistically",
+        "Cross-references playwright skill",
+        "Mentions jest-puppeteer as a workaround without overselling it",
+        "Does not pretend Puppeteer has native parallelism or retries"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i scrape a list of product names from a page that loads them with javascript",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should produce a script: launch, goto with `waitUntil: 'networkidle2'` (or wait for a specific selector that signals content is rendered), then `page.$$eval('.product-card .name', els => els.map(e => e.textContent?.trim()))`. Should warn about legal/ToS concerns when scraping public sites and recommend respecting `robots.txt` and rate-limiting. Should suggest checking if an official API exists first.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Uses page.$$eval with a selector",
+        "Waits for content to render before extracting",
+        "Flags the legal/ethical scraping concern",
+        "Suggests official API as the first question"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our Puppeteer-based PDF service in production is leaking memory and chromium processes pile up. How do we fix it?",
+      "expected_output": "Should diagnose the common causes: (1) missing `browser.close()` on error paths — fix with try/finally; (2) one browser per request creates and destroys Chromium constantly — better to reuse a long-lived browser and create a fresh BrowserContext per job; (3) unhandled exceptions in the page that leave it dangling — wrap page lifecycle in try/finally; (4) no per-job timeout — add an outer timeout that force-kills the browser process; (5) missing `--no-sandbox` / `--disable-dev-shm-usage` in containerized environments can cause Chromium to fail to launch and leak in unusual ways. Should suggest tracking the Chromium process count as an observability signal.",
+      "assertions": [
+        "Identifies missing browser.close in error paths",
+        "Recommends shared browser + per-job BrowserContext",
+        "Recommends a per-job outer timeout with force-kill",
+        "Mentions container-specific flags",
+        "Recommends observability on process count"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should we use Puppeteer or Playwright for our new screenshot service?",
+      "expected_output": "Should frame as a trade-off. Puppeteer is fine for Chromium-only screenshot generation, has a slightly smaller API surface, mature for this use case. Playwright wins if you need multi-browser screenshots (Firefox, WebKit), better device emulation, or expect to grow into a test suite later. Should defer to qa-context.md for the constraints — Chromium-only is acceptable for many products. Should NOT declare a winner; should NOT pretend they're identical.",
+      "assertions": [
+        "Frames as a trade-off, not a winner",
+        "Names concrete strengths of each",
+        "Defers final call to qa-context.md",
+        "Cross-references playwright",
+        "Does not invent feature claims"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our Puppeteer screenshots are flaky — sometimes a chart isn't rendered yet, sometimes a banner is animating. How do we make them stable?",
+      "expected_output": "Should give the standard pixel-stability checklist: (1) wait for a specific selector that signals content is ready (`page.waitForSelector` with a known 'rendered' indicator), not just `networkidle`; (2) disable CSS animations via injected stylesheet (`*, *::before, *::after { animation: none !important; transition: none !important; }`); (3) wait for web fonts (`document.fonts.ready`); (4) fix the viewport and device pixel ratio; (5) mask dynamic regions (timestamps, ad slots) via overlay or visual-regression tool ignore-region; (6) pin the Chromium version to avoid drift. Should cross-reference visual-regression skill.",
+      "assertions": [
+        "Recommends waiting on a content-ready selector",
+        "Recommends disabling animations via CSS injection",
+        "Mentions document.fonts.ready",
+        "Recommends pinning Chromium version",
+        "Mentions masking dynamic regions",
+        "Cross-references visual-regression skill"
+      ],
+      "files": []
+    }
+  ]
+}

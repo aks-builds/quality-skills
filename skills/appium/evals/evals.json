@@ -1,0 +1,88 @@
+{
+  "skill_name": "appium",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up Appium 2 with WebdriverIO for our Android-only app. We want emulator runs locally and real-device runs in BrowserStack for CI.",
+      "expected_output": "Should check qa-context.md or ask. Should outline: install Appium 2 globally, `appium driver install uiautomator2`. Show a WDIO config with `services: ['appium']` for local and capabilities under `appium:` namespace: `platformName: 'Android'`, `appium:platformVersion`, `appium:deviceName`, `appium:automationName: 'UiAutomator2'`, `appium:app`. For BrowserStack, show separate config with `bstack:options` and BrowserStack hub URL. Should recommend Accessibility ID as the primary locator strategy and Appium Inspector to discover them. Should mention pinning Appium + driver versions. Should NOT invent capability names.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Installs Appium 2 + uiautomator2 driver",
+        "Shows appium: namespace capabilities",
+        "Distinguishes local vs BrowserStack config",
+        "Recommends Accessibility ID locators",
+        "Mentions pinning versions",
+        "Does not invent capability names"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Appium tests are slow — each one takes 30s to find a button. We're using XPath everywhere.",
+      "expected_output": "Should diagnose: XPath traversal of the entire element hierarchy is expensive, especially on screens with many elements. Recommend switching to Accessibility ID (`~id`) as the primary strategy; coordinate with developers to set `contentDescription` (Android) and `accessibilityIdentifier` (iOS) on testable elements. For cases XPath is unavoidable, use scoped XPath (start from a nearby ancestor, not the root). Mention Appium Inspector to discover good identifiers without guessing. Should NOT pretend XPath is fine when used heavily.",
+      "assertions": [
+        "Identifies XPath traversal cost as the cause",
+        "Recommends Accessibility ID as the primary fix",
+        "Suggests collaborating with developers to add accessibility ids",
+        "Mentions Appium Inspector",
+        "Recommends scoped XPath if it must be used",
+        "Does not pretend heavy XPath is performant"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i switch between native and webview in a hybrid app",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce contexts: `await driver.getContexts()` returns an array like `['NATIVE_APP', 'WEBVIEW_com.example.app']`; `await driver.switchContext(...)` switches. Should show that in WebView context, you can use web selectors (`#submit`); in native, you use native locators. Should mention that WebView debugging requires Chrome DevTools (Android) / Safari Web Inspector (iOS) and that the driver may need extra capabilities to find WebView pages. Should warn about timing: WebView may not be ready immediately after navigating to a hybrid screen.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows getContexts and switchContext",
+        "Explains web vs native selector behavior",
+        "Mentions WebView debugging prerequisites",
+        "Warns about WebView readiness timing",
+        "Does not invent context names"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We want to test push notification handling. The simulator never receives them.",
+      "expected_output": "Should explain that simulators have limited / no push notification support (iOS simulator supports APNs notifications via a `simctl push` workflow on newer Xcode; Android emulators have FCM limitations). Recommend: (1) for iOS, use `xcrun simctl push` (or equivalent Appium driver capability) with a JSON payload; (2) test real push behavior on a real device — push is one of the things that genuinely requires real hardware/OS for full coverage; (3) consider testing the in-app handler logic separately with mocked notification payloads. Should NOT pretend simulator push parity is complete.",
+      "assertions": [
+        "Explains simulator limitations for push",
+        "Names xcrun simctl push (or equivalent) for iOS sim",
+        "Recommends real-device testing for full coverage",
+        "Suggests unit-testing the handler logic separately",
+        "Refers to driver-specific capabilities rather than inventing them"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should we use Appium or platform-native frameworks (Espresso for Android, XCUITest for iOS)?",
+      "expected_output": "Should frame as a trade-off. Appium: cross-platform tests share code/structure, language-agnostic, real-device-friendly, simpler to scale across teams. Native frameworks: faster execution, more reliable (in-process gray-box vs Appium's out-of-process WebDriver), better access to internal state, no driver/version juggling. Hybrid pattern: Appium for high-value cross-platform flows + native for fast per-platform smoke. Should defer the call to qa-context.md (platforms in scope, team skill, single-platform vs multi-platform priorities). Cross-references espresso and xcuitest.",
+      "assertions": [
+        "Frames as trade-off, not a winner",
+        "Names speed/reliability advantages of native frameworks",
+        "Names cross-platform advantage of Appium",
+        "Recommends a hybrid pattern",
+        "Defers to qa-context.md",
+        "Cross-references espresso and xcuitest"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Animations are making our tests flaky. The element is there but the tap misses.",
+      "expected_output": "Should recommend disabling system animations: for Android, `adb shell settings put global window_animation_scale 0`, `transition_animation_scale 0`, `animator_duration_scale 0` before tests. For iOS, no system-wide flag; the typical pattern is for the app to detect a test runtime and disable animations internally, or use `UIAccessibility.isReduceMotionEnabled`-aware code paths. Should also recommend waiting on element state (visible + clickable) rather than blind taps, and using explicit waits not implicit. Should warn that animation flake is a symptom — fix the wait strategy too.",
+      "assertions": [
+        "Names the adb settings put global animation_scale commands",
+        "Mentions iOS animation suppression strategies",
+        "Recommends explicit waits on element state",
+        "Frames animation flake as a wait-strategy symptom",
+        "Does not invent adb commands"
+      ],
+      "files": []
+    }
+  ]
+}

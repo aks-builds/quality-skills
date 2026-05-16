@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Agent Skills Specification
+    url: https://agentskills.io/specification.md
+    about: Learn the skill format before creating or requesting a skill
+  - name: Contributing Guide
+    url: https://github.com/aks-builds/quality-skills/blob/main/CONTRIBUTING.md
+    about: How to contribute a new quality engineering skill
+  - name: Security disclosure
+    url: https://github.com/aks-builds/quality-skills/blob/main/SECURITY.md
+    about: Report a security concern (do NOT open a public issue)

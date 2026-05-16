@@ -1,0 +1,84 @@
+{
+  "skill_name": "cypress",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're starting a Cypress E2E suite for a React + Next.js app. Give me a config and folder structure that works for both local dev and CI on GitHub Actions.",
+      "expected_output": "Should check qa-context.md or ask about it. Should produce a `cypress.config.ts` (or .js) with `e2e.baseUrl`, `specPattern`, `supportFile`, `viewportWidth/Height`, `retries: { runMode: 2, openMode: 0 }`, `video: true`, and a `setupNodeEvents` hook. Should suggest a folder layout: `cypress/e2e/`, `cypress/support/`, `cypress/fixtures/`. Should recommend `data-cy` selectors as the project convention and `@testing-library/cypress` if the team is open to it. Should recommend Cypress Cloud or manual sharding on GitHub Actions, cross-referencing ci-test-orchestration. Should NOT invent config fields.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Uses real config field names",
+        "Includes retries.runMode and retries.openMode",
+        "Recommends data-cy or data-testid convention",
+        "Cross-references ci-test-orchestration",
+        "Uses synthetic example URLs"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My Cypress test does `cy.visit('/products')` then `cy.get('.product-card').should('have.length', 12)`. It passes locally but fails in CI because the list takes longer to load. What's the right fix?",
+      "expected_output": "Should explain that Cypress already retries the assertion until the timeout — so this is either timing out, or the data isn't arriving. Should recommend (a) intercepting the products API with `cy.intercept('GET', '/api/products').as('getProducts')` and waiting with `cy.wait('@getProducts')` so the assertion is synchronized with the real network event, or (b) raising `defaultCommandTimeout` if the slowness is legitimate and unavoidable. Should warn against using `.css-class` selectors and recommend `[data-cy=\"product-card\"]`. Should NOT recommend `cy.wait(2000)`.",
+      "assertions": [
+        "Explains assertion retry behavior",
+        "Recommends cy.intercept + alias + cy.wait('@alias')",
+        "Flags CSS-class selector as brittle",
+        "Does NOT recommend cy.wait(milliseconds)",
+        "Mentions timeout knobs as a fallback, not a first choice"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i login once and reuse the session in cypress",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should explain `cy.session(id, setup)`: the first call runs setup, subsequent calls restore the cached cookies/localStorage/sessionStorage. Should provide a concrete example with synthetic credentials inside `beforeEach`. Should mention the faster pattern: `cy.request('POST', '/api/auth/login')` followed by `localStorage.setItem('token', ...)`, all wrapped in `cy.session` so the API call only fires when the cache is missing.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names cy.session(id, setup) with both args",
+        "Shows beforeEach usage",
+        "Mentions programmatic login via cy.request as the fast path",
+        "Uses synthetic credentials"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our app uses Okta SSO — the login flow hops from app.example.com to login.okta.com and back. Our Cypress tests fail right after the redirect to Okta. Why?",
+      "expected_output": "Should explain Cypress's single-origin runtime: the moment the URL changes to a different origin (`login.okta.com`), commands stop unless you wrap them in `cy.origin('https://login.okta.com', () => { ... })`. Should provide an example wrapping the Okta steps in `cy.origin`. Should also recommend bypassing the UI entirely for most tests — call the SSO programmatic flow or use a backend-issued session token via `cy.session` + `cy.request`. Should warn that if every test crosses several origins, Cypress may not be the right tool (cross-reference playwright).",
+      "assertions": [
+        "Identifies single-origin model as the root cause",
+        "Shows cy.origin() usage with the second origin",
+        "Recommends API-based login as the fast path",
+        "Cross-references playwright when cross-origin is constant",
+        "Does not pretend cy.visit just works across origins"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We just got Cypress Cloud — how do we set up parallel runs on GitHub Actions?",
+      "expected_output": "Should explain Cypress Cloud's auto-parallelization: each CI machine runs `cypress run --record --key <key> --parallel` and Cloud distributes specs. Should walk through GitHub Actions matrix setup with the same workflow but different `containers` indices, with the record key in a GitHub secret. Should also note: (a) you only get parallelization with --record and --parallel together; (b) the project is bound to Cloud via `projectId` in `cypress.config`; (c) for org/security policy reasons, --record sends spec output and video to Cypress; confirm that's acceptable. Cross-reference ci-test-orchestration for matrix sizing.",
+      "assertions": [
+        "Names --record and --parallel both required",
+        "Mentions projectId binding",
+        "Uses GitHub secret for the record key",
+        "Flags Cypress Cloud data sharing as a consideration",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use Cypress component tests or stick with Jest + Testing Library for our React components?",
+      "expected_output": "Should frame as trade-off, not a winner. Cypress component testing = real browser, real DOM, real CSS — great for tests that depend on layout, focus, computed styles, or browser APIs. Jest + Testing Library + jsdom = fast, lightweight, runs in-process — great for logic-heavy and accessibility-tree-heavy tests. Should recommend a mix: Jest/Vitest for the vast majority of components, Cypress component testing for the small set where the browser actually matters (visual breakpoints, drag/drop, intersection observer, focus management, etc.). Should defer the decision to qa-context.md (CI time budget, team familiarity). Should cross-reference jest-vitest skill.",
+      "assertions": [
+        "Frames it as a trade-off, not a winner",
+        "Names concrete strengths of each",
+        "Recommends a mix, not one-or-the-other",
+        "Defers final call to qa-context.md",
+        "Cross-references jest-vitest"
+      ],
+      "files": []
+    }
+  ]
+}

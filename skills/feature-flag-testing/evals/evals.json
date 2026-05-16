@@ -1,0 +1,93 @@
+{
+  "skill_name": "feature-flag-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We use LaunchDarkly. Our tests only cover the new-feature 'on' path. What should change?",
+      "expected_output": "Should check qa-context.md or ask. Should clearly say tests must cover the 'off' path too — the off path is production code as long as any users are routed there. Recommend: (1) use LaunchDarkly's TestData data source to override flags in tests; (2) write test cases for both variations of every flag; (3) add a default-fallback test (SDK unreachable → code uses the compiled-in default); (4) for flag combinations that matter, add explicit tests; (5) for percentage rollouts, verify sticky assignment per user. Should mention DI pattern: production injects real LDClient, tests inject a TestData-backed one. Should NOT pretend covering only 'on' is sufficient.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Insists on testing both variations",
+        "Names LaunchDarkly's TestData",
+        "Mentions default-fallback test",
+        "Mentions DI pattern for LDClient",
+        "Mentions sticky assignment verification",
+        "Does not pretend on-only is sufficient"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have 200 feature flags. Most haven't been touched in a year. What now?",
+      "expected_output": "Should diagnose flag rot. Recommend: (1) inventory — vendor tools (LaunchDarkly's Code References, Statsig's Insights) list flags + their code references and last-used dates; (2) categorize each flag — fully-on (remove the off branch + flag), fully-off (remove the on branch + flag), still-experimenting (assign owner + deadline), forgotten (decide and remove); (3) prioritize removing the dead branches over removing the flag entry — dead code is the real liability; (4) add a CI lint preventing new flags without an expiry date or owner; (5) schedule quarterly cleanups. Should warn that 200 flags with most untouched is a maintenance disaster; remediation is months of work, not a sprint. Cross-reference test-strategy.",
+      "assertions": [
+        "Diagnoses flag rot",
+        "Recommends inventory with vendor tools",
+        "Categorizes flags by state",
+        "Prioritizes dead-branch removal over flag entry",
+        "Recommends CI lint for new flags",
+        "Realistic about remediation timeline",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i test our kill switch",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should recommend: (1) integration test — flip the flag via SDK admin API in a test, verify the targeted behavior stops within SDK refresh window (often seconds); (2) test in-flight requests handling — what about requests already mid-flight when the kill switch flips?; (3) test the re-enable path — restoring the flag restores behavior; (4) consider chaos test against the kill switch in pre-prod / production game days. Cross-reference chaos-engineering. Should warn: untested kill switches silently fail when you need them.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Recommends integration test of flip",
+        "Includes refresh-window verification",
+        "Tests in-flight request handling",
+        "Tests re-enable path",
+        "Mentions chaos game day testing",
+        "Cross-references chaos-engineering",
+        "Warns about silent kill-switch failure"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our 50% rollout actually serves 70% based on metrics. Bug?",
+      "expected_output": "Should identify a non-uniform distribution problem. Possible causes: (1) hash function bias — particularly with small user-ID populations; (2) targeting rule overrides applying to more users than expected (e.g., 'beta_users' segment includes more than expected); (3) percentage interpretation difference — vendor may treat 50% rollout differently from your assumption; (4) sticky assignment from prior rollout periods carrying over; (5) metric attribution issue (the 70% may be measurement-side, not flag-side). Recommend: (1) audit targeting rules end-to-end; (2) verify the hash with a sample of user IDs; (3) check vendor's docs for the exact percentage semantics; (4) reconcile metric attribution. Should NOT assume the flag itself is broken without ruling out attribution.",
+      "assertions": [
+        "Identifies distribution skew possibilities",
+        "Considers hash bias, targeting rules, metric attribution",
+        "Recommends auditing rules end-to-end",
+        "Recommends sample verification",
+        "Considers vendor semantics",
+        "Does not assume flag itself is broken"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our E2E tests are flaking because flag changes from test A affect test B running in parallel.",
+      "expected_output": "Should diagnose shared global flag state as the cause. Recommend: (1) avoid global flag changes in E2E tests — use per-test target users / contexts so flag overrides only affect that user; (2) for LaunchDarkly etc., use targeting rules keyed on a per-test user ID; (3) reset state between tests via test-isolation hooks; (4) for tests that genuinely need global state, run them serially in a dedicated job (not in the parallel matrix); (5) prefer in-process flag mocks at the SDK level rather than global flag service flips. Should cross-reference flaky-test-management and ci-test-orchestration.",
+      "assertions": [
+        "Identifies shared global flag state as cause",
+        "Recommends per-test user / context",
+        "Recommends targeting rules keyed on test user",
+        "Recommends serial run for global-state tests",
+        "Recommends in-process SDK mocks",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we feature-flag every change so we can roll back instantly?",
+      "expected_output": "Should advise nuance. Feature flags are a powerful safety tool but not free: every flag is a maintenance liability, a test-matrix expansion, and a complexity tax. Recommend: (1) flag changes that are high-risk, customer-visible, or hard to roll back via git revert; (2) don't flag pure refactors, internal-only fixes, or trivial changes — they're cheaper to revert than to maintain as flags; (3) every flag should have an expiry — the goal is to remove the flag, not keep it forever; (4) trunk-based development + small PRs reduce the need for flags as a rollback tool. Should NOT recommend flagging everything. Cross-reference test-strategy and production-testing.",
+      "assertions": [
+        "Advises nuance, not flagging-everything",
+        "Names what's worth flagging (high-risk, customer-visible)",
+        "Names what's not worth flagging (refactors, trivial)",
+        "Insists on expiry per flag",
+        "Mentions trunk-based dev as alternative",
+        "Cross-references test-strategy and production-testing"
+      ],
+      "files": []
+    }
+  ]
+}

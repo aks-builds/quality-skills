@@ -1,0 +1,87 @@
+{
+  "skill_name": "test-environment-management",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're a 10-person team with one long-lived shared staging environment. Every team's PRs deploy to it. Tests pollute each other's data. What environment strategy should we adopt?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend introducing per-PR ephemeral environments (Vercel / Render / Railway / Fly preview deploys, or Kubernetes-based per-PR namespace) so each PR validates in isolation. Should keep staging as a longer-lived environment for cross-PR / pre-release verification, but not as the only non-local env. Should mention auto-teardown on PR close, cost discipline (idle stop, instance sizing), and per-branch namespacing of backing services (DB schema per branch). Should warn about staging pollution mitigations (nightly reset, owner per service) if staging stays. Cross-references test-data-management for the data side.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends per-PR ephemeral environments",
+        "Keeps staging for cross-PR work, not as only non-local env",
+        "Mentions auto-teardown",
+        "Mentions cost discipline",
+        "Mentions per-branch backing-service namespacing",
+        "Cross-references test-data-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our local dev environment requires real AWS credentials and a VPN connection. New engineers take a week to get tests passing locally. Better approach?",
+      "expected_output": "Should diagnose this as an onboarding tax. Recommend: (1) make the local environment self-contained — Docker Compose / Testcontainers for all backing services (DB, Redis, queues, S3 emulator like MinIO); (2) any cloud dependencies should be mocked locally (wiremock / responses); (3) `.env.example` committed, idempotent `make setup` that runs from scratch; (4) AWS / VPN only required for specific non-default workflows, never for the default `npm test` or `pytest`. Should mention that the test that requires VPN should be in a separate suite (integration-only) that runs on CI / staging, not local. Cross-reference testcontainers and wiremock.",
+      "assertions": [
+        "Identifies external dependencies as the onboarding tax",
+        "Recommends Docker Compose / Testcontainers for backing services",
+        "Recommends mocking external services for local",
+        "Separates VPN-requiring tests from default local suite",
+        "Cross-references testcontainers and wiremock"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how big should our ci runner be",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should explain that CI runner sizing is a trade-off — too small and tests timeout / OOM; too big and you're paying for idle capacity. Common starting points: 2-4 vCPU, 4-8 GB RAM, with `--shm-size=2g` for browser tests. Should recommend running the same image locally with constrained resources (`docker run --cpus=2 --memory=4g`) to reproduce CI conditions. Should warn that tests passing on dev laptops fail in CI is often a sizing issue. Should mention sharding (cross-reference ci-test-orchestration) as the alternative to over-provisioning a single runner.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Gives concrete starting sizes",
+        "Mentions /dev/shm for browser tests",
+        "Recommends reproducing CI conditions locally",
+        "Suggests sharding as alternative to over-provision",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our staging is running Postgres 14 but production is on 16. Test passed staging, failed in prod.",
+      "expected_output": "Should diagnose environment drift — Postgres major-version changes (14 → 16) introduce real differences: new SQL features, query planner behavior, default settings. Recommend: (1) pin every backing service version across environments — Postgres 16 in staging, dev, and CI to match prod; (2) set up drift detection — `terraform plan` regularly checks for differences; (3) automate version upgrades as IaC changes that move all envs together; (4) when prod upgrades, staging upgrades first as a canary. Should warn that this same drift issue applies to Redis / Kafka / Node / JVM versions — every infrastructure version should be pinned and synchronized. Cross-reference qa-context.md for tracking what's in use.",
+      "assertions": [
+        "Identifies environment drift as the cause",
+        "Recommends pinning versions across environments",
+        "Recommends drift detection via terraform plan or similar",
+        "Generalizes to other backing services",
+        "Recommends staging-upgrades-first practice"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Per-PR ephemeral environments sound great but our AWS bill would explode. How do we make them affordable?",
+      "expected_output": "Should give cost-discipline recommendations: (1) auto-stop / scale-to-zero idle environments overnight and weekends (use AWS Instance Scheduler, or Lambda + EventBridge); (2) smaller instance types in preview than prod (t3.small, not m5.xlarge); (3) shared backing services where safe (one RDS instance, separate schemas per branch); (4) aggressive teardown on PR close + a reaper for stale PRs > 30 days; (5) cap concurrent previews (50, oldest gets killed); (6) tag everything for per-team cost attribution; (7) consider lighter-weight alternatives (Localstack for some AWS, Render / Fly preview deploys for app-tier). Should remind that ephemeral envs catch bugs worth orders of magnitude more than the bill — but the bill still needs discipline.",
+      "assertions": [
+        "Lists at least 5 concrete cost levers",
+        "Mentions auto-stop scheduling",
+        "Mentions instance sizing and shared backing services",
+        "Mentions aggressive teardown",
+        "Mentions cost-attribution tagging",
+        "Reframes cost-vs-value of ephemerals"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "We're under PCI scope. Can we still have a production-snapshot staging?",
+      "expected_output": "Should clearly say no, not without masking. PCI DSS treats any environment containing cardholder data as in-scope, including staging. Options: (1) masked snapshots — replace card numbers with test PANs, scrub all CHD before the snapshot lands in staging; (2) synthetic data only — generate plausible volumes and shapes via faker + custom generators; (3) tokenize at the source — production stores tokens, not PANs, so a snapshot is naturally compliant. Should warn against 'just don't tell auditors' — PCI is enforceable and scope expansion is a known audit finding. Cross-reference test-data-management for the masking-specific patterns.",
+      "assertions": [
+        "Clearly says no without masking",
+        "Names three valid alternatives (masking / synthetic / tokenization)",
+        "Refuses to recommend non-compliance",
+        "Cross-references test-data-management",
+        "Mentions audit consequences"
+      ],
+      "files": []
+    }
+  ]
+}

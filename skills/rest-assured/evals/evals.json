@@ -1,0 +1,84 @@
+{
+  "skill_name": "rest-assured",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're a Java/Spring team starting REST API tests. Walk me through setting up REST Assured with JUnit 5 and reusable specs.",
+      "expected_output": "Should check qa-context.md or ask. Should suggest Maven/Gradle coords for `io.rest-assured:rest-assured` and `org.hamcrest:hamcrest`. Should outline JUnit 5 setup with a `@BeforeAll` to set base URI/config, define a `Specs` helper class with `authedJson(token)` and `okJson()` builders. Should show a sample test using `given().spec(authedJson(token)).when().get(...).then().spec(okJson()).body(...)`. Should mention REST Assured MockMvc as a Spring-native faster alternative for in-process testing. Should NOT fabricate Maven coords or method signatures.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Names real Maven coordinates",
+        "Shows JUnit 5 lifecycle integration",
+        "Demonstrates RequestSpecBuilder and ResponseSpecBuilder",
+        "Mentions REST Assured MockMvc as a Spring option",
+        "Uses synthetic tokens / IDs"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "How do I validate a complex nested JSON response in REST Assured without writing a manual parser?",
+      "expected_output": "Should explain REST Assured's Groovy-style JsonPath in `.body(path, matcher)`. Should show examples: `.body('data.users.size()', equalTo(3))`, `.body('data.users[0].email', endsWith('@example.com'))`, `.body('data.users.findAll { it.active == true }.size()', greaterThan(0))`. Should also explain when to use schema validation instead (`matchesJsonSchemaInClasspath`) for structural correctness vs spot assertions for specific values. Should warn that REST Assured's path is Groovy, not full JSONPath spec.",
+      "assertions": [
+        "Shows Groovy-style path assertions",
+        "Demonstrates findAll / collection operations",
+        "Mentions JSON Schema validation as the structural option",
+        "Clarifies Groovy vs JSONPath distinction",
+        "Does not invent matcher names"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i chain a post response into a delete request",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show `.extract().path('id')` to capture the returned ID from a POST, then use it in a follow-up `.delete('/resource/{id}', extractedId)`. Should mention `extract().response()` for capturing the full response object, and `jsonPath().getString(...)` / `.getList(...)` for more complex extraction. Should use synthetic IDs in the example.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows .extract().path() for value extraction",
+        "Demonstrates passing the value to a subsequent request",
+        "Mentions extract().response() for the full response option",
+        "Uses synthetic IDs"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our REST Assured tests work locally but fail on CI with SSLException because our staging uses a self-signed cert. What's the right way to handle this?",
+      "expected_output": "Should recommend `.relaxedHTTPSValidation()` or configuring a custom truststore — but should clearly explain the trade-off. `relaxedHTTPSValidation()` is acceptable for self-signed staging where you control the env, but never for production. The cleaner option is to import the staging cert into a JKS truststore and configure `RestAssuredConfig` to use it. Should suggest scoping the relaxation to staging tests only (e.g., via a profile or @Tag), so prod tests cannot accidentally bypass TLS validation. Should NOT recommend disabling TLS validation universally.",
+      "assertions": [
+        "Mentions relaxedHTTPSValidation() with the trade-off explained",
+        "Recommends truststore as the cleaner alternative",
+        "Scopes the relaxation to staging only",
+        "Refuses universal TLS disable",
+        "Does not invent config field names"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Compare REST Assured with REST Assured MockMvc — when should we use which?",
+      "expected_output": "Should explain: REST Assured against a running server tests the full HTTP stack (network, serialization, TLS, container) — slower, more realistic. REST Assured MockMvc skips the network — much faster (10-100x), suitable for the bulk of controller tests, but misses the network/serialization layer. Recommend a hybrid: most tests use MockMvc; a smaller smoke layer runs full HTTP against a deployed instance to catch container/network issues. Should defer the exact ratio to qa-context.md.",
+      "assertions": [
+        "Names speed-vs-realism as the core trade-off",
+        "Recommends a hybrid (MockMvc bulk + HTTP smoke)",
+        "Defers the ratio to qa-context.md",
+        "Does not present them as equivalent",
+        "Cross-references ci-test-orchestration for managing both layers"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "We need to share auth between many tests. Each test logs in via /auth/login and uses the token. How do I avoid that cost?",
+      "expected_output": "Should suggest: (1) log in once in `@BeforeAll`, cache the token, reuse it via a `RequestSpecBuilder` that's also defined once; (2) for the cases where a fresh token matters, scope a separate spec that re-issues login; (3) consider using a service-account / pre-provisioned token in CI to skip the login flow entirely; (4) if the API supports it, request a longer-lived token for the test run. Should warn about not committing tokens — inject via env var. Should use synthetic credentials.",
+      "assertions": [
+        "Recommends caching token across tests via @BeforeAll",
+        "Demonstrates a shared RequestSpecBuilder pattern",
+        "Mentions service-account / long-lived test token as alternatives",
+        "Warns against committing tokens",
+        "Uses synthetic credentials"
+      ],
+      "files": []
+    }
+  ]
+}

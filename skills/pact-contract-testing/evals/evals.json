@@ -1,0 +1,85 @@
+{
+  "skill_name": "pact-contract-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have 8 microservices owned by 4 teams, each deploying independently. Integration tests are slow and flaky. Should we adopt Pact?",
+      "expected_output": "Should check qa-context.md or ask. Should say yes — this is exactly the shape Pact helps with (multi-team, independent deploys, broken integration tests). Should outline what to set up: a Pact Broker (self-hosted) or Pactflow (managed), an initial pact between two services as a proof of concept, `can-i-deploy` wired into deploy jobs, and pending/WIP pact configuration to avoid breaking provider builds during rollout. Should warn that Pact is operational overhead, not free — broker uptime, state setup, and team education all matter. Should recommend starting small (1-2 service pairs) before scaling org-wide.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Confirms Pact fits multi-team microservice shape",
+        "Recommends Pact Broker / Pactflow before scaling",
+        "Mentions can-i-deploy gating",
+        "Mentions pending/WIP pacts to ease rollout",
+        "Honest about operational cost",
+        "Recommends starting small"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We tried Pact and our provider's CI is constantly red because every new consumer pact immediately breaks it. How do we fix this?",
+      "expected_output": "Should diagnose: provider is verifying pacts before it has decided to support them. Solution: enable pending pacts (and/or WIP pacts) on the provider side so new/unverified pacts don't block the build. The provider explicitly accepts a pact when ready. Should explain the workflow: consumer publishes a pact → provider build sees it as pending → provider team reviews and implements → provider verifies and explicitly accepts → from then on, the pact gates the provider. Should suggest reviewing the broker docs for the specific flag names per implementation. Should NOT recommend disabling pact verification.",
+      "assertions": [
+        "Identifies pending/WIP pacts as the fix",
+        "Explains the consumer-publishes → provider-accepts workflow",
+        "Refuses to recommend disabling pact verification",
+        "Refers user to broker docs for exact flag names",
+        "Does not invent option names"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "what's the difference between pact and postman tests",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should clearly explain: Postman tests verify that *the API behaves the way I expect right now*. They're a snapshot. Pact tests verify that *the consumer and provider agree on the contract* and gate deploys on continued agreement. Postman is consumer-side regression; Pact is bidirectional, broker-coordinated, deployment-gating. Should emphasize that you can use both — Postman for exploration and broad regression, Pact for the cross-team compatibility piece. Cross-reference postman-newman.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Clearly distinguishes regression vs contract",
+        "Names the bidirectional, broker-coordinated nature of Pact",
+        "Recommends both can coexist",
+        "Cross-references postman-newman"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Help me write my first Pact test. We have a Node consumer (web-app) and a Java provider (orders-service). The consumer fetches a user's orders.",
+      "expected_output": "Should produce a consumer-side test using `@pact-foundation/pact` (Node), with `PactV3`, `provider.given(...)`, `uponReceiving(...)`, `withRequest({ method, path, headers })`, `willRespondWith({ status, headers, body })` using matchers (`like`, `eachLike`, `regex`) instead of literal values. Should describe what the provider needs to do: configure pact-jvm with `@Provider`, fetch from broker, implement `@State` handler for the state the consumer declared. Should mention publishing the pact via `pact-broker publish` and gating deploys with `can-i-deploy`. Should use synthetic IDs and tokens.",
+      "assertions": [
+        "Shows consumer-side test with PactV3 and matchers (like/eachLike/regex)",
+        "Describes provider-side responsibility (state handler, broker fetch)",
+        "Mentions publish + can-i-deploy",
+        "Uses synthetic IDs and bearer tokens",
+        "Does not invent method names"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our pact tests keep breaking because we change response field names every sprint. Are we doing something wrong?",
+      "expected_output": "Should explain: yes — pacts capture the field names the consumer relies on. Renaming a field IS a breaking change to consumers, and pacts surface that. The right interpretation is 'pact correctly detected we are about to break a consumer.' Should recommend evolving APIs in backwards-compatible ways: add new fields without removing old ones, support both for a deprecation window, then remove. Should mention that if consumers shouldn't depend on a specific field name, the pact should use matchers correctly (or not assert on that field at all). Should NOT advise relaxing pacts to allow silent breakage.",
+      "assertions": [
+        "Reframes the failures as pact doing its job",
+        "Recommends backwards-compatible API evolution",
+        "Suggests matcher review to avoid asserting on unintentional fields",
+        "Refuses to suggest relaxing pacts to mask breakage",
+        "Cross-references API versioning practice"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use Pact between our backend services and our React frontend?",
+      "expected_output": "Should explain that frontend-to-backend Pact is workable but often overkill. Trade-offs: the frontend is usually deployed in lockstep with the backend (single tenant), and the contract surface is large (every API the UI calls). E2E or integration tests often catch the same issues with less ceremony. Pact shines when consumer and provider deploy independently and are owned by different teams. If your React app and backend are one team / one repo / one deploy, integration tests or shared OpenAPI verification may be a better fit. Cross-reference test-strategy and consider schemathesis (pytest-api skill) for OpenAPI-driven verification.",
+      "assertions": [
+        "Reframes when Pact is overkill",
+        "Names independent deployment as the key signal",
+        "Suggests integration tests / OpenAPI verification as alternatives",
+        "Cross-references test-strategy and pytest-api (schemathesis)",
+        "Does not auto-recommend Pact everywhere"
+      ],
+      "files": []
+    }
+  ]
+}

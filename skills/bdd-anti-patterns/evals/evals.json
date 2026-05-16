@@ -1,0 +1,85 @@
+{
+  "skill_name": "bdd-anti-patterns",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our BDD suite has scenarios like: 'Given I open the login page / When I type X into #email / And I click .btn-primary / Then the URL should be /dashboard.' Reviews keep complaining. What's the fix?",
+      "expected_output": "Should check qa-context.md or ask. Should identify the imperative / UI-script anti-pattern. Should rewrite the scenario in intent: 'Given I have a registered account / When I sign in / Then I land on my dashboard.' Should explain that the click / URL check belongs inside the step definition, not the feature file. Should remind the team that if no non-engineers read these scenarios, BDD may not be the right tool — recommend evaluating that meta-question. Cross-references cucumber-gherkin.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Identifies imperative/UI-script pattern by name",
+        "Rewrites scenario in intent language",
+        "Explains step defs handle UI specifics",
+        "Raises meta-question about BDD fit",
+        "Cross-references cucumber-gherkin"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have 200 scenarios but only engineers write and read them. Should we keep BDD?",
+      "expected_output": "Should give an honest answer: probably no. BDD's value comes from non-engineer participation; without it, you're paying the abstraction tax (step defs, regex maintenance, World plumbing) for no readability dividend. Recommend a clean migration: identify the 10-20 highest-value user-journey scenarios, rewrite them as plain UI tests (Playwright / Cypress) or API tests (supertest / pytest), delete the rest, commit. Should reassure that dropping BDD is not failure — it's a tooling decision becoming clearer. Should cross-reference test-strategy and the relevant landing-place skills.",
+      "assertions": [
+        "Honestly recommends dropping BDD given the constraints",
+        "Outlines a migration plan",
+        "Reframes the drop as a success, not failure",
+        "Names UI/API alternatives",
+        "Cross-references test-strategy",
+        "Does not pretend BDD must be kept"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i tell if my then steps are actually asserting anything",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should recommend a grep over step definition files for `pass`-only bodies (Python) or `// ...` empty bodies (other languages), plus a review of step bodies that look like they assert but don't (e.g., `expect(x).toBeDefined()` on something that's always defined). Should explain that a non-asserting `then` is worse than no scenario — it gives false confidence. Recommend a lint rule or pre-commit check that flags empty step bodies. Should suggest a one-time audit sweep where each non-asserting step is either fixed or its scenario deleted.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Recommends grep audit for empty bodies",
+        "Frames empty thens as worse than no scenario",
+        "Suggests CI lint to prevent regression",
+        "Recommends triage (fix or delete)"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our @flaky tagged scenarios have been there for 8 months. We just ignore the failures. What now?",
+      "expected_output": "Should explain that `@flaky` is meant to be a tracker, not a permanent state. 8-month-old `@flaky` tags = dead weight or hidden bugs. Recommend triage: for each tagged scenario, decide (1) is the test wrong — fix or delete; (2) is the underlying code intermittent — file a bug and fix; (3) is the scenario obsolete — delete. Recommend a policy: every `@flaky` has a linked ticket, gets reviewed monthly, and an expiry date that auto-fails the build if exceeded. Should warn that the longer the tag lives, the worse the team's signal becomes — flaky failures train the team to ignore real failures too.",
+      "assertions": [
+        "Frames @flaky as a tracker not a permanent state",
+        "Recommends triage with 3 concrete outcomes",
+        "Recommends ticket-link + expiry-date policy",
+        "Warns about signal degradation from long-lived flake",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We have a giant Background section that does 9 things before each scenario. Some scenarios don't need most of it. How should we restructure?",
+      "expected_output": "Should diagnose: every scenario pays for all 9 setups, including the ones it doesn't use. This slows the suite and couples tests to background state. Recommend: (1) keep in `Background` only what *every* scenario in the feature truly needs; (2) move scenario-specific setup back into the scenario as explicit `Given`s; (3) split the feature if scenarios have wildly different prerequisites — that's a hint they belong in different features; (4) for setup that's structural (sign in, DB seed), consider whether it should be a hook instead of background. Should NOT recommend keeping the giant Background as-is.",
+      "assertions": [
+        "Identifies the bloated-Background anti-pattern",
+        "Recommends moving scenario-specific setup back to scenarios",
+        "Suggests splitting features if prerequisites diverge",
+        "Mentions hooks as an alternative for structural setup",
+        "Does not recommend keeping the status quo"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our team is committed to BDD but the suite has rotted. Where do I start an audit?",
+      "expected_output": "Should walk the team through a triage checklist: (1) who writes / reads features today; (2) pick a random feature and have a product person try to explain it — gauges spec quality; (3) audit Then steps for empty assertions; (4) check scenario count vs step-def count for duplication; (5) review tags for permanent quarantine; (6) check feature-deletion rate (a suite that only grows is rotting); (7) measure run time and flake rate. Should propose categorizing each scenario as healthy / refactor / delete, and committing to delete the dead ones. Should reframe: the goal of an audit isn't to keep everything, it's to keep only what earns its place.",
+      "assertions": [
+        "Provides a structured audit checklist",
+        "Includes spec-quality, assertion quality, duplication, deletion rate, run time",
+        "Recommends three-bucket triage (healthy/refactor/delete)",
+        "Frames deletion as the success metric",
+        "Cross-references test-strategy or related skills"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "skill_name": "security-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're a small startup with no security testing today. We're SOC 2 in flight. What should we adopt first?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend a layered minimum-viable set: (1) SCA via Dependabot or pip-audit/npm audit — easy, high signal; (2) secret scanning via gitleaks or GitHub Secret Scanning + a pre-commit hook; (3) SAST via semgrep with the OWASP Top 10 + language ruleset; (4) container scanning via Trivy on the image build pipeline. Should add: authn/authz integration tests as `@security` tagged tests in the existing test framework. Should defer DAST until staging is stable (it adds 15-60 min CI). Should recommend a triage process: who reviews findings, what's blocking, what's warning. Cross-references ci-test-orchestration.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Names Dependabot/SCA as first easy win",
+        "Names secret scanning as second easy win",
+        "Recommends semgrep with OWASP ruleset",
+        "Recommends container scan via Trivy",
+        "Includes authn/authz integration tests",
+        "Defers DAST appropriately",
+        "Recommends a triage process"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our SAST tool flags 1200 issues. The team has stopped looking at them.",
+      "expected_output": "Should diagnose this as the classic security-test signal collapse. Recommend: (1) triage 1200 → maybe 50 actionable items (most SAST hits are noise); (2) suppress with documented rationale rather than disable the scanner; (3) tune the ruleset — disable rules that don't apply, raise severity only on the ones that do; (4) introduce custom rules for project-specific footguns (more value than 1000 generic rules); (5) make the PR gate fail only on the curated subset; warn on the rest. Should warn that fixing the *signal* is more important than fixing the *findings*. Cross-references test-strategy framing for gate hygiene.",
+      "assertions": [
+        "Identifies signal collapse as the issue",
+        "Recommends triage to actionable subset",
+        "Recommends documented suppressions over disabling",
+        "Recommends tuning ruleset",
+        "Recommends custom rules for project footguns",
+        "Recommends PR gate only on curated subset",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i scan our docker images for vulns in ci",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should recommend Trivy as the open-source default: `trivy image --severity HIGH,CRITICAL --exit-code 1 myorg/myapp:<tag>`. Show GitHub Actions integration step. Should mention pinning base image tags (`alpine:3.20.5`, not `:latest`) and using minimal base images (distroless, alpine, scratch). Should recommend a policy: fail on CRITICAL, warn on HIGH, ignore LOW until they accumulate. Should mention that direct vs transitive matters — a CVE in a transitive dep your code can't reach is different priority than one in your request path.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names Trivy and shows the command",
+        "Mentions GitHub Actions integration",
+        "Recommends pinning base image versions",
+        "Recommends minimal base images",
+        "Suggests severity-tiered policy",
+        "Distinguishes direct vs transitive"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We found an AWS access key committed to our repo last week. We deleted the commit. We're good, right?",
+      "expected_output": "Should clearly say no. Removing the commit doesn't unleak the secret — it may have been cloned, scraped by bots, indexed by search engines, cached, or sitting in CI logs. The correct process: (1) **rotate the key immediately** in AWS IAM — disable the old, create a new; (2) audit CloudTrail for any use of the leaked key between commit and rotation; (3) only then clean the repo (git filter-repo / BFG) to remove from history; (4) force-push (coordinate with the team) and notify all clones. Should warn that AWS keys committed publicly are typically exploited within minutes by automated bots. Should recommend pre-commit secret scanning (gitleaks / detect-secrets) to prevent recurrence.",
+      "assertions": [
+        "Strongly states removing the commit is insufficient",
+        "Recommends rotating the key first",
+        "Recommends CloudTrail audit",
+        "Mentions history rewrite as a later step",
+        "Notes automated exploitation timeline",
+        "Recommends pre-commit secret scanning",
+        "Does not pretend the commit deletion was enough"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should we add DAST to our PR CI?",
+      "expected_output": "Should give nuanced advice. Full active DAST scans (15-60 min) are too slow for PR CI — the team will hate them. Baseline DAST scans (1-5 min, passive checks) are workable on PR if you have an ephemeral environment to target. Recommend: (1) ZAP baseline scan on PR against the ephemeral env; (2) full ZAP active scan + nuclei templates scheduled nightly against staging; (3) reserve PR DAST for high-confidence findings (missing security headers, obvious injection patterns). Should warn about scanning the wrong environment — DAST against prod is unauthorized scanning; DAST against staging requires SRE sign-off. Cross-references test-environment-management.",
+      "assertions": [
+        "Distinguishes baseline vs active DAST",
+        "Recommends baseline on PR, active scheduled",
+        "Mentions ephemeral env as DAST target",
+        "Warns about scanning wrong environment",
+        "Cross-references test-environment-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our SAST passes but we just had a SQL injection in production. How is that possible?",
+      "expected_output": "Should explain SAST limitations: (1) static analysis can miss taint flows through dynamic code paths (reflection, deserialization, runtime SQL building); (2) the rule may not exist for the specific framework idiom you used; (3) custom string builders that wrap parameterized queries 'safely' often fool SAST; (4) generated code may bypass SAST entirely; (5) the rule may have been suppressed for a different reason. Recommend: (1) investigate the specific gap — what code constructed the injectable query, and could a custom semgrep rule have caught it; (2) add an integration test (now and as a regression); (3) audit similar patterns in the codebase manually; (4) re-evaluate where SAST tuning may be too lenient. Should NOT pretend SAST is a guarantee.",
+      "assertions": [
+        "Lists multiple SAST limitations",
+        "Includes reflection/dynamic SQL building as cause",
+        "Recommends investigating the specific gap",
+        "Recommends custom rule + regression test",
+        "Recommends manual audit of similar patterns",
+        "Reframes SAST as a hint, not a guarantee"
+      ],
+      "files": []
+    }
+  ]
+}

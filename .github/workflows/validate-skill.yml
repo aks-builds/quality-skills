@@ -1,0 +1,159 @@
+name: Validate Agent Skill
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/SKILL.md"
+      - "**/evals/evals.json"
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: validate-skill-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft != true && github.actor != 'dependabot[bot]'
+    outputs:
+      skills: ${{ steps.changed-skills.outputs.skills }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed skills
+        id: changed-skills
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE=${{ github.event.pull_request.base.sha }}
+            HEAD=${{ github.event.pull_request.head.sha }}
+          else
+            BASE=${{ github.event.before }}
+            HEAD=${{ github.event.after }}
+          fi
+
+          SKILLS=$(git diff --name-only $BASE $HEAD | \
+            grep -E '(/SKILL\.md|/evals/evals\.json)$' | \
+            sed -E 's#/(SKILL\.md|evals/evals\.json)$##' | \
+            sort -u | \
+            jq -R -s -c 'split("\n") | map(select(length > 0))')
+
+          echo "skills=$SKILLS" >> $GITHUB_OUTPUT
+          echo "Changed skills: $SKILLS"
+
+  validate:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.skills != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        skill: ${{ fromJson(needs.detect-changes.outputs.skills) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate frontmatter
+        run: |
+          SKILL_PATH="${{ matrix.skill }}"
+          SKILL_FILE="$SKILL_PATH/SKILL.md"
+          SKILL_NAME=$(basename "$SKILL_PATH")
+
+          if [ ! -f "$SKILL_FILE" ]; then
+            echo "::error::Missing $SKILL_FILE"
+            exit 1
+          fi
+
+          FRONT_NAME=$(awk '/^---$/{flag++; next} flag==1 && /^name:/{sub(/^name: */,""); print; exit}' "$SKILL_FILE" | tr -d '\r')
+          DESC=$(awk '/^---$/{flag++; next} flag==1 && /^description:/{flag=2; sub(/^description: */,""); printf "%s", $0; next} flag==2 && /^[a-z_]+:/{flag=3} flag==2{printf " %s", $0}' "$SKILL_FILE")
+          DESC_LEN=${#DESC}
+          LINES=$(wc -l < "$SKILL_FILE")
+
+          fail=0
+          if [ "$FRONT_NAME" != "$SKILL_NAME" ]; then
+            echo "::error::Frontmatter name '$FRONT_NAME' does not match directory '$SKILL_NAME'"
+            fail=1
+          fi
+          if ! echo "$SKILL_NAME" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$'; then
+            echo "::error::Skill name '$SKILL_NAME' must be lowercase a-z 0-9 with single hyphens"
+            fail=1
+          fi
+          if [ "$DESC_LEN" -lt 1 ] || [ "$DESC_LEN" -gt 1024 ]; then
+            echo "::error::description length $DESC_LEN out of range 1-1024"
+            fail=1
+          fi
+          if [ "$LINES" -gt 500 ]; then
+            echo "::error::$SKILL_FILE is $LINES lines (max 500)"
+            fail=1
+          fi
+          if [ "$fail" -ne 0 ]; then exit 1; fi
+          echo "::notice::OK $SKILL_NAME (desc $DESC_LEN chars, $LINES lines)"
+
+      - name: Validate evals.json
+        run: |
+          SKILL_PATH="${{ matrix.skill }}"
+          SKILL_NAME=$(basename "$SKILL_PATH")
+          EVAL_FILE="$SKILL_PATH/evals/evals.json"
+
+          if [ ! -f "$EVAL_FILE" ]; then
+            echo "::error::Missing $EVAL_FILE — every skill must ship evals/evals.json with 5-6 scenarios (see CONTRIBUTING.md)"
+            exit 1
+          fi
+
+          if ! jq empty "$EVAL_FILE" 2>/dev/null; then
+            echo "::error::$EVAL_FILE is not valid JSON"
+            exit 1
+          fi
+
+          fail=0
+
+          EVAL_SKILL_NAME=$(jq -r '.skill_name // empty' "$EVAL_FILE")
+          if [ "$EVAL_SKILL_NAME" != "$SKILL_NAME" ]; then
+            echo "::error::$EVAL_FILE skill_name '$EVAL_SKILL_NAME' does not match directory '$SKILL_NAME'"
+            fail=1
+          fi
+
+          EVAL_COUNT=$(jq '.evals | if type=="array" then length else -1 end' "$EVAL_FILE")
+          if [ "$EVAL_COUNT" -lt 5 ] || [ "$EVAL_COUNT" -gt 6 ]; then
+            echo "::error::$EVAL_FILE has $EVAL_COUNT evals (must be 5-6 per CONTRIBUTING.md)"
+            fail=1
+          fi
+
+          BAD=$(jq -r '
+            .evals
+            | to_entries
+            | map(select(
+                (.value.id | type != "number")
+                or (.value.prompt | type != "string" or length == 0)
+                or (.value.expected_output | type != "string" or length == 0)
+                or (.value.assertions | type != "array" or length == 0)
+              ))
+            | map("eval index \(.key): missing or empty id|prompt|expected_output|assertions")
+            | .[]
+          ' "$EVAL_FILE")
+
+          if [ -n "$BAD" ]; then
+            while IFS= read -r line; do echo "::error::$line"; done <<< "$BAD"
+            fail=1
+          fi
+
+          DUPES=$(jq -r '
+            .evals
+            | map(.id)
+            | group_by(.)
+            | map(select(length > 1))
+            | map(.[0] | tostring)
+            | .[]
+          ' "$EVAL_FILE")
+
+          if [ -n "$DUPES" ]; then
+            while IFS= read -r id; do echo "::error::Duplicate eval id: $id"; done <<< "$DUPES"
+            fail=1
+          fi
+
+          if [ "$fail" -ne 0 ]; then exit 1; fi
+          echo "::notice::OK $SKILL_NAME evals ($EVAL_COUNT scenarios)"

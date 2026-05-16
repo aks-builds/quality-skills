@@ -1,0 +1,90 @@
+{
+  "skill_name": "test-reporting",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our PR test runs produce no output engineers can use. They see 'tests failed' but no detail. What's the minimum setup?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend the baseline: (1) emit JUnit XML from every test runner; (2) configure CI to surface JUnit XML in its native check-run / test-results view; (3) upload failure artifacts (screenshots / videos / traces / logs) as CI artifacts with descriptive names; (4) link build ID into artifact names so triage is one click. Should suggest one richer HTML reporter (Playwright HTML / Allure / mochawesome) for richer triage. Should warn not to over-invest in dashboards before this baseline works. Cross-references ci-test-orchestration.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends emitting JUnit XML as baseline",
+        "Recommends CI native test view integration",
+        "Recommends artifact uploads on failure",
+        "Recommends one rich HTML reporter",
+        "Cross-references ci-test-orchestration",
+        "Warns against over-engineering before baseline works"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have 4 shards running Playwright in parallel. Each emits its own HTML report. How do we get a single report?",
+      "expected_output": "Should introduce Playwright's `merge-reports` command: each shard runs with `--reporter=blob` (or stores its raw results), an aggregator job downloads all shard artifacts and runs `npx playwright merge-reports --reporter html ./blob-*` to produce a single HTML report. Show the GHA workflow shape with a `needs: [test]` aggregator job using `actions/download-artifact`. Should mention `if: always()` so aggregation runs even when shards fail. Should NOT recommend asking engineers to read 4 separate reports.",
+      "assertions": [
+        "Names playwright merge-reports",
+        "Shows blob reporter + aggregator pattern",
+        "Uses actions/download-artifact in aggregator",
+        "Uses if: always() for aggregation",
+        "Provides a workflow shape",
+        "Refuses to recommend reading 4 reports"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "should we use allure for our pytest suite",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should give a balanced answer: Allure is a strong choice for cross-runner step-level HTML reporting with attachments. Pros: rich step + attachment model, supports `@allure.step` decorators, can show trends if you deploy Allure server, supports many runners. Cons: requires an adapter library (`allure-pytest`), generated as a two-step process (raw results → render HTML), and a deployed Allure server adds opex. For small teams, Playwright HTML / mochawesome / pytest-html are often simpler. Recommend Allure when you outgrow per-PR reports and want trend / history. Cross-references pytest and the relevant runner skill.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Frames as a trade-off",
+        "Names Allure's concrete strengths",
+        "Notes the two-step rendering and server-deployment cost",
+        "Suggests simpler reporters for small teams",
+        "Cross-references pytest"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We built a Grafana dashboard for test trends. Nobody looks at it. What went wrong?",
+      "expected_output": "Should explain a common reporting anti-pattern: built dashboard without an audience first. Recommend: (1) talk to engineers, QA, and managers to find out what decisions they actually want to make from data; (2) prioritize metrics that drive a decision (e.g., 'top 10 flakiest tests this week' is actionable; 'aggregate pass rate' is not); (3) make the dashboard reachable from places people already look (CI pull request comments, Slack alerts on regression); (4) decide ownership and review cadence — without it the dashboard rots. Should warn against building more dashboards as the fix. Cross-references flaky-test-management for actionable flake metrics.",
+      "assertions": [
+        "Identifies no-audience-first as the issue",
+        "Recommends interviewing audience for decision-driving metrics",
+        "Recommends embedding metrics where people already look",
+        "Names actionable vs vanity metrics",
+        "Cross-references flaky-test-management",
+        "Refuses to build more dashboards as the fix"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our CI artifact storage costs are growing — we're keeping screenshots and videos of every test forever.",
+      "expected_output": "Should diagnose lack of retention policy. Recommend: (1) most CI providers default to 30-90 day retention — verify and configure; (2) only capture videos on E2E failures, not passing runs (most UI frameworks support this); (3) capture screenshots on failure only, not on every action; (4) audit artifact sizes — sometimes one runaway logger floods storage; (5) for must-keep artifacts (e.g., regulatory audit), move them to cheaper S3 / archival storage out of CI's hot tier. Should warn about deleting unique evidence for past production incidents — preserve those. Cross-references test-environment-management for cost discipline.",
+      "assertions": [
+        "Recommends artifact retention policy",
+        "Recommends failure-only capture for videos/screenshots",
+        "Mentions auditing for runaway loggers",
+        "Suggests archival storage for must-keep evidence",
+        "Warns about preserving past-incident evidence",
+        "Cross-references test-environment-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we adopt Datadog CI Visibility for test analytics?",
+      "expected_output": "Should give a balanced trade-off. Pros: language-agnostic, push test results, sessions, and metrics; gets flake detection, trend analytics, owner / file attribution; works across multiple CI providers. Cons: commercial / paid; another data destination to manage; adds startup latency to test runs (tracer); team has to actually look at it. Recommend a pilot — one repo for 60 days; measure whether the data drives different behavior. Alternative: Buildkite Test Analytics, Trunk, Launchable, hand-rolled Grafana + your CI API. Should defer to qa-context.md (existing observability stack, budget, team analytics maturity).",
+      "assertions": [
+        "Frames as a trade-off",
+        "Names DD CI Visibility's concrete strengths",
+        "Acknowledges cost and adoption requirements",
+        "Suggests a pilot",
+        "Names alternatives",
+        "Defers to qa-context.md"
+      ],
+      "files": []
+    }
+  ]
+}

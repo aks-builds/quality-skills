@@ -1,0 +1,91 @@
+{
+  "skill_name": "ci-test-orchestration",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our GitHub Actions CI takes 45 minutes. We have 400 Playwright tests, 2000 Jest unit tests, ESLint, TypeScript. Where do we start?",
+      "expected_output": "Should check qa-context.md or ask. Should walk through profiling first: identify the long pole (almost certainly Playwright at this scale), then shard it with matrix workers (`playwright test --shard=${{ matrix.shard }}/N` with `strategy.matrix.shard: [1,2,3,4]`). Run Jest in parallel with --shard or pytest-xdist-style. Move full E2E to post-merge if PR-time is critical. Add `concurrency` group with `cancel-in-progress: true` to kill obsolete runs. Cache `~/.npm` / Playwright browsers / Docker layers. Should warn about test isolation requirements for sharding. Should mention measuring savings step by step. Cross-references playwright and jest-vitest.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Profiles first to identify the long pole",
+        "Recommends matrix shards for Playwright",
+        "Mentions Jest sharding for unit tests",
+        "Adds concurrency.cancel-in-progress",
+        "Mentions caching strategy",
+        "Cross-references playwright and jest-vitest",
+        "Warns about test isolation"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our tests pass locally but our CI matrix flakes when running 8 parallel shards. Same tests, same code.",
+      "expected_output": "Should diagnose shared mutable state across parallel jobs: (1) all shards talk to the same Postgres instance / Redis / queue — DB rows collide; (2) shards write to the same S3 bucket / same file paths; (3) unique constraints hit by parallel inserts of identically-named test users; (4) port conflicts; (5) shared cache layer at SUT side. Recommend: namespace test data per shard (`worker_id` / `CI_NODE_INDEX`-prefixed IDs), use per-shard schemas or databases, isolate S3 prefixes per shard. Cross-reference test-data-management and flaky-test-management. Should NOT recommend reducing parallelism as the fix.",
+      "assertions": [
+        "Identifies shared state as cause",
+        "Lists 4+ concrete shared-state sources",
+        "Recommends per-shard namespacing",
+        "Recommends per-shard DB schemas / S3 prefixes",
+        "Cross-references test-data-management",
+        "Refuses to recommend reducing parallelism as fix"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i aggregate junit xml from sharded jobs",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should outline the pattern: each sharded job uploads its JUnit XML as an artifact named uniquely (`results-shard-1.xml`, etc.); a follow-up job (`needs: [test]`, `if: always()`) downloads all artifacts and runs an aggregator. Options: language-specific aggregators (`junit-merge`), or push to a service (Datadog CI Visibility, Buildkite Test Analytics, Trunk, Allure server). Should show a minimal GitHub Actions snippet using `actions/upload-artifact` + `actions/download-artifact`. Should mention `if: always()` is critical so reports get aggregated even when tests fail. Cross-references test-reporting.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Upload + download artifacts pattern",
+        "Names junit-merge or service push",
+        "Mentions if: always() for aggregation",
+        "Provides minimal workflow snippet",
+        "Cross-references test-reporting"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Should we add `--retries 3` to our PR CI to deal with flake?",
+      "expected_output": "Should clearly say no — high-retry policies hide systemic issues. Recommend instead: (1) baseline the flake rate; (2) identify top-N flakiest tests; (3) for each, root-cause and fix (most flake comes from a small subset of tests); (4) if retries are necessary as a stopgap, retry once max AND mark retried tests as flaky in the report (not silent pass); (5) track flake rate over time. Should cross-reference flaky-test-management. Should NOT pretend retries solve flake — they just delay the cost.",
+      "assertions": [
+        "Says no to --retries 3 default",
+        "Recommends fixing top-N flakiest first",
+        "Allows retry-once with reporting as a stopgap",
+        "Recommends tracking flake rate",
+        "Cross-references flaky-test-management",
+        "Does not pretend retries solve flake"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our CI cost is $4000/month. Can we cut it without losing coverage?",
+      "expected_output": "Should give cost-discipline levers: (1) `concurrency` with `cancel-in-progress: true` — kills obsolete runs from rapid pushes; (2) right-size runners (4 vCPU may be enough when you're paying for 16); (3) spot / preemptible runners for non-critical paths; (4) move heavy checks (full E2E, perf, mutation) to nightly scheduled runs instead of every PR; (5) test impact analysis on PR runs to skip unrelated suites; (6) aggressive caching; (7) right-size matrix (drop redundant cells); (8) self-hosted runners if volume justifies. Should warn about the false economy of cutting too much — broken signal is worse than $4000. Cross-reference test-strategy.",
+      "assertions": [
+        "Lists at least 6 cost levers",
+        "Mentions concurrency cancellation",
+        "Mentions right-sizing runners",
+        "Mentions scheduling heavy checks off-PR",
+        "Warns about false economy",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Test impact analysis sounds great. Should we adopt it now? Our suite has 30% flake rate.",
+      "expected_output": "Should advise no — TIA assumes the suite gives reliable signal; 30% flake rate means the signal is broken. Recommend: (1) fix flake first (cross-reference flaky-test-management) — TIA on a flaky suite picks the wrong tests to run and the wrong tests to skip; (2) get baseline flake under 1-2% before considering TIA; (3) when ready, start with simple file-graph TIA (Jest --changedSince, vitest related) before adopting commercial TIA tools (Launchable, etc.). Should warn that TIA is a force multiplier — it amplifies whatever your suite quality is. Cross-references flaky-test-management and test-strategy.",
+      "assertions": [
+        "Advises against TIA with 30% flake rate",
+        "Recommends fixing flake first",
+        "Sets baseline target (< 1-2% flake)",
+        "Recommends starting with simple file-graph TIA",
+        "Cross-references flaky-test-management",
+        "Frames TIA as a force multiplier"
+      ],
+      "files": []
+    }
+  ]
+}

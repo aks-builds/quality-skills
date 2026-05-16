@@ -1,0 +1,86 @@
+{
+  "skill_name": "cucumber-gherkin",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our team is starting BDD with Cucumber-JVM. Write me a sample checkout feature with a Background, a Scenario Outline, and matching Java step definitions.",
+      "expected_output": "Should check qa-context.md or ask. Should produce a clean `.feature` file with a one-paragraph Feature: header (As a / I want / So that), a `Background:` for login-as-customer, two scenarios (happy path + a parametrized Scenario Outline for tax-by-region with an Examples table). Should follow with Java step definitions using `@Given/@When/@Then` from `io.cucumber.java.en.*`, parameter types like `{bigdecimal}` and `{string}`, using domain-language method names. Should use synthetic data (Widget, regions, prices). Should NOT include implementation detail like CSS selectors in the feature file.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Feature file with Background and Scenario Outline + Examples",
+        "Java step defs use io.cucumber.java.en imports",
+        "Parameter types like {bigdecimal} / {string}",
+        "Domain-language naming",
+        "No UI specifics in feature text",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our `.feature` file has steps like `When I click on the element with id #submit-button` and `Then the URL contains '/dashboard'`. Reviews keep complaining. What should change?",
+      "expected_output": "Should explain the anti-pattern: features should describe behavior, not implementation. `When I click #submit-button` is a UI script in disguise. Recommend rewriting steps to describe intent: `When I submit the checkout`, `Then I land on the dashboard`. The step definition handles the click and URL check — that's what step defs are for. Should cross-reference bdd-anti-patterns. Should remind that if engineers are the only readers, Cucumber may not be the right tool at all — plain UI tests in Playwright / Cypress are honest about being UI tests.",
+      "assertions": [
+        "Identifies UI specifics in features as the issue",
+        "Rewrites steps in intent / domain language",
+        "Cross-references bdd-anti-patterns",
+        "Raises the meta-question: is Cucumber the right tool",
+        "Does not pretend the pattern is fine"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i pass a table of test data into a step",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show data table syntax in Gherkin (pipe-delimited rows under the step) and the matching step def signature: `Given('I add the following items:', async function (table: DataTable) { for (const row of table.hashes()) { ... } })` (Cucumber.js) or `@Given(\"...\") public void addItems(DataTable table)` in JVM. Should mention `hashes()` for rows-as-objects, `rows()` for raw cells, `raw()` for the full table. Should use synthetic SKUs and prices.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows data table syntax in Gherkin",
+        "Shows step def receiving DataTable",
+        "Mentions hashes() / rows() / raw()",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our Cucumber-JS suite runs serial. Tests take 25 minutes. Parallel options?",
+      "expected_output": "Should explain `cucumber-js --parallel N` (or the equivalent on JVM / Ruby). Should warn that parallel scenarios require: per-scenario state via the World (no class statics, no shared mutable module globals); independent test data (unique IDs per scenario); DB isolation if scenarios touch DB. Should also recommend sharding across CI machines for the next level of scaling. Should mention that hooks (BeforeAll / AfterAll) only run once per worker process, not once per shard — design accordingly. Cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Names cucumber-js --parallel N",
+        "Warns about shared state",
+        "Mentions DB isolation requirements",
+        "Mentions cross-machine sharding as next step",
+        "Notes BeforeAll/AfterAll per-worker behavior",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We're getting tag conflicts — @wip is on 30 scenarios from 6 months ago. How do we clean this up?",
+      "expected_output": "Should treat @wip as a tracker rather than a permanent state. Recommend: audit each tagged scenario, decide one of (1) ready to be tested — remove tag and fix the underlying code; (2) deferred — track in an issue and remove the tag from the scenario file; (3) genuinely WIP — assign to someone with a deadline. Should warn that a long-lived @wip pool becomes invisible debt; same for @flaky used as a quarantine without a follow-up plan. Should cross-reference flaky-test-management.",
+      "assertions": [
+        "Frames @wip as a tracker not a permanent state",
+        "Recommends triage with three concrete outcomes",
+        "Warns about silent debt accumulation",
+        "Cross-references flaky-test-management",
+        "Does not recommend leaving them indefinitely"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we adopt Cucumber for our engineering-only team?",
+      "expected_output": "Should advise against in most cases. Cucumber's main value is enabling non-engineers (product, BA, support) to read and contribute to specs. For an engineer-only team, the abstraction tax (step def lookup, regex maintenance, World plumbing) pays no readability dividend — plain unit / integration tests in the host runner are clearer. Exception: if your codebase has a strong outside-in / acceptance-test culture or you're maintaining a legacy Cucumber suite, sticking with it is fine. Cross-reference test-strategy. Should NOT pretend Cucumber is universally beneficial.",
+      "assertions": [
+        "Advises against for engineer-only teams",
+        "Names abstraction tax as the cost",
+        "Acknowledges legacy-suite case",
+        "Cross-references test-strategy",
+        "Does not recommend Cucumber universally"
+      ],
+      "files": []
+    }
+  ]
+}

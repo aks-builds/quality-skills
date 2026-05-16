@@ -1,0 +1,86 @@
+{
+  "skill_name": "maestro",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Help us set up Maestro for our React Native app to run a smoke test of the login flow on both iOS and Android.",
+      "expected_output": "Should check qa-context.md or ask. Should walk through: install Maestro binary, place `.maestro/login.yaml` in the repo with `appId`, steps (`launchApp`, `tapOn` with `id:` selectors, `inputText`, `assertVisible`). Should remind that the app needs `testID` / `accessibilityIdentifier` on the relevant components. Should mention running with `maestro test .maestro/login.yaml`, using `--device` for multi-device scenarios. For CI, install Maestro via the official script and run after starting an emulator/simulator. Should use synthetic credentials. Should NOT invent Maestro commands.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Produces a YAML flow with appId + steps",
+        "Uses id-based selectors",
+        "Reminds about testID / accessibilityIdentifier in the app",
+        "Names the maestro test CLI",
+        "Uses synthetic credentials",
+        "Does not invent commands"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Maestro flow `tapOn: \"Submit\"` taps the wrong button — there are two on the screen.",
+      "expected_output": "Should explain: Maestro picks the first match for ambiguous text. Fixes: (1) use `tapOn: { id: \"checkout.submit\" }` with a stable identifier; (2) `tapOn: { text: \"Submit\", index: 1 }` to pick the second match; (3) scope with `childOf: { id: \"checkout-form\" }`. Should recommend adding accessibility identifiers in the app as the long-term fix. Should NOT recommend coordinate-based taps for stable cases.",
+      "assertions": [
+        "Explains first-match selection behavior",
+        "Names id-based, index-based, and childOf scoping fixes",
+        "Recommends adding accessibility identifiers in app",
+        "Refuses coordinate-based selectors",
+        "Does not invent Maestro selector keys"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i share a login flow across many maestro tests",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `runFlow`: store a `shared/login.yaml` flow, then in test flows call `- runFlow: \"shared/login.yaml\"`. Should mention `env:` variables for parameterization (`${USERNAME}`) and `clearState: true` on `launchApp` if a clean slate is needed before login. Should remind that sub-flows should be designed to leave the app in a consistent state. Should use synthetic credentials.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Introduces runFlow for sub-flow reuse",
+        "Mentions env variables and ${VAR} substitution",
+        "Mentions clearState for clean slate",
+        "Recommends sub-flow contract clarity",
+        "Uses synthetic credentials"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Should we go all-in on Maestro and replace our Detox suite?",
+      "expected_output": "Should advise caution. Maestro is great for smoke and simple flows; Detox handles complex logic, data-driven tests, intricate sync requirements, and integrates with Jest's broader ecosystem. Recommend keeping Detox for the regression suite owned by engineers and adding Maestro as a complementary layer for fast smoke / QA-led exploration. Should defer to qa-context.md (current suite size, complexity, team makeup, CI time budget). Should NOT recommend a full rip-and-replace.",
+      "assertions": [
+        "Refuses blanket replacement recommendation",
+        "Suggests Maestro as a complementary layer",
+        "Names Detox's strengths for regression",
+        "Defers to qa-context.md",
+        "Cross-references detox"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Maestro flow keeps failing on the second run because the user is already logged in from the first.",
+      "expected_output": "Should explain that app state persists between flows. Fix: (1) start the flow with `launchApp: { clearState: true }` to wipe app data; (2) alternatively, add an explicit logout step at the end of the flow; (3) or design flows to be idempotent — detect logged-in state with `runFlow: { when: { visible: 'Welcome back' }, ... }`. Recommend `clearState: true` as the default for smoke flows and an explicit cleanup pattern for regression flows that need realistic state. Should NOT pretend state magically resets.",
+      "assertions": [
+        "Identifies persistent state as the cause",
+        "Recommends clearState: true on launchApp",
+        "Mentions runFlow with when: as alternative",
+        "Suggests cleanup-at-end pattern",
+        "Does not pretend state resets automatically"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our QA team is non-technical but wants to add their own flows. Is Maestro the right tool?",
+      "expected_output": "Should give a balanced answer. YAML is far more accessible than Detox JS or Appium client code, and Maestro Studio's interactive recording lowers the bar significantly. Caveats: (1) QA still needs to know how to identify good selectors (or work with engineers to add accessibility identifiers); (2) flows that grow complex tend to exceed YAML's expressiveness; (3) review every committed flow — bad selectors and coordinate-based taps create maintenance burden quickly. Recommend a pairing model: QA authors, engineers review and harden. Should defer details to qa-context.md.",
+      "assertions": [
+        "Acknowledges Maestro's accessibility for non-engineers",
+        "Names Maestro Studio for discovery",
+        "Notes caveats around selector hygiene and flow complexity",
+        "Recommends a QA-author + engineer-review pairing model",
+        "Defers to qa-context.md"
+      ],
+      "files": []
+    }
+  ]
+}

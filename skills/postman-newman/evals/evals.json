@@ -1,0 +1,87 @@
+{
+  "skill_name": "postman-newman",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a flat Postman collection with 180 requests. The team complains it's unmaintainable. How do we restructure it?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend folder structure by domain (Auth, Users, Orders, etc.) with optional numbered ordering for setup folders. Should suggest a separate `Smoke` folder for the CI subset. Should recommend moving env-agnostic setup to collection-level pre-request scripts and resource-specific setup to folder-level. Should mention splitting into multiple collections if domains are independent (e.g., public API vs admin API). Should warn against committing secrets — use environments + CI secret overrides. Should remind that the collection is JSON and belongs in Git.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends folder-by-domain structure",
+        "Mentions Smoke subfolder for CI",
+        "Distinguishes collection-level vs folder-level scripts",
+        "Mentions splitting into multiple collections if domains diverge",
+        "Warns against committing secrets",
+        "Treats the collection JSON as Git-versioned"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Show me how to chain a login response token into the Authorization header of subsequent requests.",
+      "expected_output": "Should describe the pattern: (1) a POST /auth/login request whose Test script extracts the token (`pm.environment.set('authToken', pm.response.json().token)`); (2) subsequent requests use `Authorization: Bearer {{authToken}}` in their headers. Should mention putting this in a `00 — Auth` folder that runs first, or as a collection-level pre-request that calls a `/refresh` endpoint when the token is missing/expired. Should use synthetic credentials and a placeholder token in the example. Should warn that the token must not be committed in the environment file — use Postman's `secret` variable type or inject via `--env-var` in CI.",
+      "assertions": [
+        "Shows pm.environment.set for token extraction",
+        "Uses {{authToken}} in Authorization header",
+        "Recommends a dedicated Auth folder or collection-level setup",
+        "Uses synthetic credentials",
+        "Warns about committing secrets"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i run my postman tests in github actions",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should produce a GitHub Actions step that installs newman + htmlextra reporter, runs `newman run collection.json -e env.json --reporters cli,junit,htmlextra`, exports JUnit XML and HTML, and uploads them as artifacts. Should put the staging env file in the repo with secrets stripped, and inject secrets via `--env-var` from GitHub secrets. Should set `fail-fast: false` if running across multiple environments and gate merges on the newman job. Should cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows a workflow step with newman install and run",
+        "Uses cli + junit + htmlextra reporters",
+        "Uploads artifacts on failure",
+        "Injects secrets via --env-var from GitHub secrets",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our team is moving from manual Postman exploration to a CI regression suite. The current collection has zero pm.test blocks. What's the minimum we should add?",
+      "expected_output": "Should recommend an MVP test pattern for every request: (1) `pm.test('status is 2xx', () => pm.response.to.be.success);` or specific expected status; (2) `pm.test('response is JSON', () => pm.response.to.be.json);` (3) `pm.test('schema check', ...)` validating a few key fields. Should suggest a shared helper in the collection-level test script for repeated assertions. Should call out that tests without specific assertions (just status codes) only catch outages, not regressions — recommend a follow-up pass adding payload assertions. Should mention `tv4` / `ajv`-based JSON Schema validation as the next step.",
+      "assertions": [
+        "Recommends status + content-type + minimal payload check",
+        "Suggests a shared helper in collection-level test script",
+        "Notes that status-only tests don't catch regressions",
+        "Mentions JSON Schema as the next step",
+        "Does not invent pm.test syntax"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Newman runs locally but fails on CI with `ECONNREFUSED` to localhost. What's going on?",
+      "expected_output": "Should diagnose: the collection or environment likely references `localhost`/`127.0.0.1`, which on CI doesn't resolve to the target service. Common fixes: (1) parameterize `baseUrl` and override it via `-e prod.env.json` or `--env-var baseUrl=https://staging.example.com` on CI; (2) if the API is internal and CI runs outside that network, set up a tunnel or run tests in a runner inside the network; (3) if the API is supposed to run in the same job, ensure it's started before `newman run` (e.g., docker compose up the service first). Should NOT recommend `--insecure` as a fix for connection refused.",
+      "assertions": [
+        "Identifies hardcoded localhost as the likely cause",
+        "Recommends parameterizing baseUrl",
+        "Mentions network/tunnel options for internal APIs",
+        "Mentions starting the service in CI if it's expected locally",
+        "Does NOT recommend --insecure",
+        "Distinguishes connection issues from TLS issues"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use Postman tests or write API tests in code (e.g., pytest)?",
+      "expected_output": "Should frame as a trade-off. Postman wins on: GUI exploration, sharing with non-engineers, low onboarding for QA-led teams, integrated docs/mock servers. Code (pytest/supertest/rest-assured) wins on: refactoring, IDE support, types, fixtures, parametrization, easier code review, easier mass changes. Many teams use Postman for exploration and code for regression. Should defer to qa-context.md (team makeup, languages, CI). Should cross-reference pytest-api / supertest / rest-assured. Should NOT declare a universal winner.",
+      "assertions": [
+        "Frames as trade-off, not a winner",
+        "Names concrete strengths of each",
+        "Suggests hybrid approach (Postman for exploration, code for regression)",
+        "Defers to qa-context.md",
+        "Cross-references language-native API testing skills"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "skill_name": "k6",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We need to load test our checkout API. The SLO is p95 < 300ms at 200 RPS with <0.5% errors. Write me a k6 script.",
+      "expected_output": "Should check qa-context.md or ask about environment. Should produce a k6 script with `scenarios.checkout = { executor: 'constant-arrival-rate', rate: 200, timeUnit: '1s', duration: '5m', preAllocatedVUs: <reasonable>, maxVUs: <higher> }`. Should include thresholds: `http_req_duration: ['p(95)<300']`, `http_req_failed: ['rate<0.005']`. Should call `http.post` with synthetic credentials, use `check()` for response shape, tag the request via `tags.name`. Should warn about running against the right environment (not prod without consent). Should NOT use VU-based executor for an RPS-shaped goal.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Uses constant-arrival-rate (not constant-vus) for RPS-shaped goal",
+        "Sets thresholds matching the SLO",
+        "Uses synthetic credentials in payloads",
+        "Tags requests for per-endpoint reporting",
+        "Warns about target environment",
+        "Does not invent options keys"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My k6 test has 50 check() calls but the run is reported as passed even when checks fail. Why?",
+      "expected_output": "Should explain clearly: `check()` records a boolean metric but does NOT fail the test. Only thresholds fail the run. Fixes: (1) add a threshold on the check metric — e.g., `'checks{check:status 200}': ['rate>0.99']`; (2) use thresholds on the underlying metric directly (`http_req_failed: ['rate<0.01']`); (3) call `fail()` explicitly when a check fails if you want hard-stop semantics. Should recommend keeping checks for soft observation, thresholds for pass/fail. Should NOT suggest checks alone are sufficient.",
+      "assertions": [
+        "Clearly distinguishes check (observation) vs threshold (pass/fail)",
+        "Shows threshold on checks rate as the fix",
+        "Mentions fail() for hard stops",
+        "Recommends thresholds + checks together",
+        "Does not pretend checks alone fail the run"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i login once and reuse the token across all vus",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce the `setup()` function: runs once before scenarios, returns data passed to the default function. Show a `setup()` that POSTs to `/auth/login` and returns `{ token }`; the default function reads `data.token` and uses it in the Authorization header. Should mention `teardown()` as the symmetric cleanup hook. Should use synthetic credentials. Should warn that long tests with short-lived tokens need refresh logic — `setup()` runs once.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Introduces setup() and shows return-value flow",
+        "Uses synthetic credentials",
+        "Mentions teardown() symmetry",
+        "Warns about token expiry over long runs",
+        "Does not invent k6 lifecycle hooks"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our k6 run shows p95 = 250ms (passes the SLO) but our prod is alerting at p95 = 600ms with similar traffic. Why don't they match?",
+      "expected_output": "Should give a triage checklist: (1) traffic shape mismatch — load test is uniform requests, prod is mixed paths; (2) environment difference — perf env hardware, DB seed, network topology, caching state; (3) data difference — perf data is small/clean, prod data is large/messy; (4) auth/token caching — perf reuses one token, prod has cold logins; (5) downstream dependencies behave differently (rate limits, caches warm vs cold); (6) load test runs from a fast network, prod traffic from real clients. Should recommend instrumenting both with the same metric names so they're directly comparable, and adding a realistic mix scenario rather than testing single endpoints in isolation.",
+      "assertions": [
+        "Lists at least 4 plausible causes",
+        "Includes data/environment differences",
+        "Recommends mixed-traffic scenarios",
+        "Recommends shared instrumentation between test and prod",
+        "Does not assume the test is just wrong without diagnosing"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should we run our k6 tests in CI on every PR?",
+      "expected_output": "Should explain the trade-off. Pros: catch perf regressions before merge. Cons: load tests are slow, noisy, and expensive in CI minutes; they can dwarf the rest of the suite; running every PR can saturate the perf environment. Recommended pattern: a fast smoke perf test (~1 min, low load) on every PR to catch obvious regressions, plus a longer scheduled run (nightly or weekly) for the real numbers. Should mention setting per-endpoint thresholds in the smoke as tight gates, and looser thresholds in the long run as warnings. Cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Frames as a trade-off, not a winner",
+        "Recommends smoke-on-PR + longer-on-schedule split",
+        "Mentions environment saturation risk",
+        "Cross-references ci-test-orchestration",
+        "Does not pretend every-PR full load testing is universally feasible"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "We use VU-based executor and the test reports actual RPS lower than what we configured. What's happening?",
+      "expected_output": "Should explain the fundamental: VU-based executors hold *concurrency*, not *throughput*. If responses are slow, each VU completes fewer iterations and effective RPS drops. The test asked for 'N concurrent users' and is delivering that — but that may not be the throughput you wanted. Fix: switch to `constant-arrival-rate` or `ramping-arrival-rate`, which holds RPS regardless of response time (it'll spin up more VUs to maintain rate, up to `maxVUs`). Should explain why arrival-rate is usually closer to real traffic shapes for SLO testing.",
+      "assertions": [
+        "Identifies VU executor as concurrency-shaped, not throughput-shaped",
+        "Recommends switching to constant-arrival-rate",
+        "Explains maxVUs as the safety cap for arrival-rate",
+        "Frames arrival-rate as closer to real traffic for SLO testing",
+        "Does not invent executor names"
+      ],
+      "files": []
+    }
+  ]
+}

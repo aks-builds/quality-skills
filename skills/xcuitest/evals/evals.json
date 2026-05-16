@@ -1,0 +1,85 @@
+{
+  "skill_name": "xcuitest",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up XCUITest for our SwiftUI app and write a first login test.",
+      "expected_output": "Should check qa-context.md or ask. Should outline: add a UI test target alongside the app target in Xcode, instantiate `XCUIApplication()`, set `continueAfterFailure = false`, pass `launchArguments`/`launchEnvironment` to flag test mode, then `app.launch()`. Provide a sample test using `accessibilityIdentifier`-based queries (`app.textFields[\"login.email\"]`, `app.buttons[\"login.submit\"]`). Should remind the user to set `.accessibilityIdentifier(...)` in SwiftUI view code. Should use `waitForExistence(timeout:)` for the post-login assertion. Should use synthetic credentials. Should NOT invent XCTest API.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Sets continueAfterFailure = false in setUp",
+        "Uses accessibilityIdentifier in SwiftUI",
+        "Uses waitForExistence for post-action assertion",
+        "Uses synthetic credentials",
+        "Does not invent XCTest API"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our XCUITest fails because we localize labels. Tests work in English but break in German.",
+      "expected_output": "Should explain that querying by `label` matches localized user-visible text. Switch to `accessibilityIdentifier` (constant across locales). Show: in the app, set `.accessibilityIdentifier(\"login.submit\")` on the SwiftUI button; in the test, query `app.buttons[\"login.submit\"]`. Should also mention test plans as a way to run the same suite across locales for true cross-locale coverage. Should NOT suggest hardcoding German labels in the test.",
+      "assertions": [
+        "Identifies accessibilityLabel/localization as the root cause",
+        "Recommends accessibilityIdentifier as the fix",
+        "Shows SwiftUI and test-side code",
+        "Mentions test plans for locale matrix",
+        "Refuses hardcoded localized strings in tests"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i tap a row in a list at position 4",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show `app.cells.element(boundBy: 3).tap()` (index 3 for position 4, 0-based). Should warn that index-based queries are brittle to list order changes; recommend instead identifying by a descendant element via `app.cells.containing(.staticText, identifier: \"specific-id\").element.tap()` or by `accessibilityIdentifier` on the cell itself. Should not invent XCUIElementQuery methods.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows element(boundBy:) usage",
+        "Warns about index-based brittleness",
+        "Recommends descendant matching or cell identifier",
+        "Does not invent XCUIElementQuery methods"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We need to test that the app handles a push notification arriving. The simulator never receives them.",
+      "expected_output": "Should explain: modern Xcode + iOS simulator supports push via `xcrun simctl push <udid> <bundle-id> payload.json` (or by drag-drop of a JSON onto the simulator). Show a minimal JSON push payload and the CLI command. Should mention that full push-from-APNs flow can only be tested on a real device with a provisioning profile (cross-reference cloud-test-grids and AWS Device Farm / BrowserStack). Should NOT pretend the simulator + production APNs setup is the same.",
+      "assertions": [
+        "Names xcrun simctl push as the simulator option",
+        "Shows minimal push JSON payload",
+        "Clarifies that full APNs flow requires real device",
+        "Cross-references cloud-test-grids",
+        "Does not invent simctl subcommands"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our XCUITest suite takes 45 minutes. How do we parallelize?",
+      "expected_output": "Should explain XCUITest parallelization: in the test plan / scheme settings, enable 'Execute in parallel' for the UI test target. This launches multiple simulator clones, each running a subset. Should mention: (1) `-parallel-testing-enabled YES -parallel-testing-worker-count <N>` on `xcodebuild`; (2) tests must be independent (no shared mutable state, no shared logged-in user that mutates between tests); (3) simulator clones have higher RAM/CPU cost — set worker count to match the host. Should mention that sharding across multiple CI machines (each running a subset) is the next step. Cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Mentions parallel-testing-enabled / worker-count flags",
+        "Warns about test independence requirement",
+        "Notes resource cost of simulator clones",
+        "Mentions cross-machine sharding as next step",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Compare XCUITest with Appium for our iOS-only team.",
+      "expected_output": "Should frame as a trade-off. XCUITest: native Apple tool, fast iteration via Xcode, integrated with Xcode Cloud, no external server needed, faster than Appium on iOS. Appium: cross-platform infrastructure (if Android may come later), language flexibility (write iOS tests in JS/Python/Java if the team is JS/Python/Java-centric), shared cloud farm patterns. For an iOS-only Swift/Kotlin team, XCUITest is usually the better default; for a JS-only team or one that may expand to Android, Appium makes more sense. Defer to qa-context.md (single platform vs multi, team language). Cross-references appium.",
+      "assertions": [
+        "Frames as trade-off, not a winner",
+        "Names XCUITest's speed/integration advantages",
+        "Names Appium's cross-platform / language advantages",
+        "Recommends XCUITest for iOS-only Swift teams as the default",
+        "Defers to qa-context.md",
+        "Cross-references appium"
+      ],
+      "files": []
+    }
+  ]
+}

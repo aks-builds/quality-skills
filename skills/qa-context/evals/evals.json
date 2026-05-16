@@ -1,0 +1,84 @@
+{
+  "skill_name": "qa-context",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're a new team and there's no context file yet. We have a TypeScript/Next.js app with a Go backend, deployed on AWS, with GitHub Actions for CI. Help us create the QA context.",
+      "expected_output": "Should offer to create `.agents/qa-context.md` (mentioning the `.claude/qa-context.md` fallback). Should ask a focused initial set of questions covering languages used for tests, target browsers, API protocol/auth, CI parallelism budget, test environments, and compliance scope — without trying to fill every section at once. Should save the file using the structure documented in the skill, with synthetic placeholder values where the user didn't yet specify. Should remind the user to commit the file (or use the fallback if it contains sensitive info) and to keep it updated.",
+      "assertions": [
+        "Checks for `.agents/qa-context.md` first, then `.claude/qa-context.md`",
+        "Asks a minimal initial set of questions, not all sections at once",
+        "Captures stack (TS/Next.js + Go), CI provider (GitHub Actions), and parallelism explicitly",
+        "Uses the documented section structure",
+        "Recommends committing the file to the repo when appropriate",
+        "Does not invent values the user did not provide"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our context file says we use Python for all tests and pytest is our standard. Suggest how to test our new REST API.",
+      "expected_output": "Should read the context file first and explicitly quote/reference the Python + pytest constraint. Should recommend `pytest` + a Python HTTP client (requests / httpx) rather than offering Java/REST Assured, Karate, or other non-Python tools. Should hand off API-specific patterns to the pytest-api or rest-assured skills as appropriate, while staying within the stated language constraint. Should NOT generically list every API testing tool.",
+      "assertions": [
+        "Reads the context file before answering",
+        "Honors the Python + pytest constraint",
+        "Does not recommend Java/JS/Go-only tools",
+        "Cross-references pytest-api skill for deeper guidance",
+        "Avoids generic 'here are 10 options' answers"
+      ],
+      "files": [".agents/qa-context.md"]
+    },
+    {
+      "id": 3,
+      "prompt": "where's the qa context file",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should check `.agents/qa-context.md` (primary) and `.claude/qa-context.md` (fallback) and report which one exists. Should also point at the structure documented in the skill so the user knows what should be in it. Should offer to create one if neither exists.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Checks both primary and fallback paths",
+        "Tells the user which file (if any) exists",
+        "Does not assume the file exists at a non-standard path"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We're under PCI DSS scope. Update our context to reflect that we cannot use real cardholder data in any test environment, and that staging cannot have any production data snapshots.",
+      "expected_output": "Should read the current context file. Should update both the `## Compliance & sensitive data` section and the `## Test data` section, ensuring consistency between them. Should call out that this change has downstream implications — the test-data-management skill will now refuse production-snapshot approaches, and test environments must use synthetic generators or scrubbed fixtures. Should preserve the rest of the file unchanged.",
+      "assertions": [
+        "Reads the current context file before editing",
+        "Updates both compliance and test-data sections consistently",
+        "Flags downstream impact on test-data-management and test-environment-management",
+        "Does not lose or rewrite unrelated sections",
+        "Suggests this change be reviewed by whoever owns the team's compliance posture"
+      ],
+      "files": [".agents/qa-context.md"]
+    },
+    {
+      "id": 5,
+      "prompt": "Help me write a context file. Our company is a SaaS startup, we don't really have CI yet, and our tests are mostly manual. We want to start adding automation.",
+      "expected_output": "Should treat 'mostly manual today, starting automation' as legitimate context — not a failure. Should help the user fill in what they have and explicitly mark gaps (CI: 'TBD', quality gates: 'none defined yet'). Should suggest filling the gaps later rather than refusing to proceed. Should recommend that the next step is to pick a tier-1 frontend tool (cross-referencing the cypress / playwright / selenium skills), and a CI provider — but should not over-prescribe; the choice depends on stack and team skills which still need to be captured.",
+      "assertions": [
+        "Treats incomplete context as a valid starting point",
+        "Marks unknown sections as 'TBD' rather than leaving them blank or making them up",
+        "Recommends next steps (pick a tool, pick a CI provider) without prescribing them",
+        "Hands off to relevant skills (cypress / playwright / selenium / ci-test-orchestration) for next decisions",
+        "Does not invent stack details the user did not give"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our context file is two years old. We've moved from Jenkins to GitHub Actions and we now ship a mobile app. How do I update it?",
+      "expected_output": "Should read the current file, identify the stale sections (`CI/CD`, `Mobile`, and likely `Test environments` and `Tools and licenses` if Jenkins-specific things were listed), and propose a diff or rewrite for just those sections. Should ask follow-up questions to fill in the new mobile-specific fields (iOS / Android / both, real device cloud or simulator, app distribution channel). Should NOT rewrite the file wholesale — preserve sections that haven't changed. Should bump the `metadata.version` if the file uses one, or recommend adding a `Last updated: <date>` line.",
+      "assertions": [
+        "Reads the current file before suggesting changes",
+        "Identifies only the stale sections",
+        "Proposes a targeted diff rather than a full rewrite",
+        "Asks the right follow-ups for the new mobile scope",
+        "Preserves unchanged sections verbatim",
+        "Suggests a way to track when the file was last updated"
+      ],
+      "files": [".agents/qa-context.md"]
+    }
+  ]
+}

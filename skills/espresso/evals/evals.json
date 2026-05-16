@@ -1,0 +1,88 @@
+{
+  "skill_name": "espresso",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up Espresso for our Kotlin Android app with the standard AndroidX Test stack. We're on coroutines for network calls.",
+      "expected_output": "Should check qa-context.md or ask. Should specify the right AndroidX Test artifacts (`androidx.test.ext:junit`, `androidx.test.espresso:espresso-core`, `androidx.test:runner`, `androidx.test:rules`) with pinned versions. Should set `testInstrumentationRunner = \"androidx.test.runner.AndroidJUnitRunner\"`. Should suggest placing tests under `src/androidTest/kotlin/`. For coroutines, recommend a `CoroutinesIdlingResource` pattern or an OkHttp idling resource if HTTP is the main async surface — register with `IdlingRegistry`. Should include a starter test with `ActivityScenarioRule`, `onView(withId(...))`, perform/check, and `closeSoftKeyboard()`. Should NOT invent IdlingResource methods.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Names real AndroidX Test artifacts",
+        "Sets testInstrumentationRunner correctly",
+        "Suggests an IdlingResource pattern for coroutines/HTTP",
+        "Provides a starter test using the standard API",
+        "Mentions closeSoftKeyboard()",
+        "Pins versions"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Espresso tests pass on the developer machine but fail in CI on the emulator. They fail at random points clicking buttons.",
+      "expected_output": "Should diagnose the standard set: (1) animations enabled on CI emulator — disable via `adb shell settings put global window_animation_scale 0` (also transition, animator); (2) tests racing with async work — add IdlingResource for the relevant async surface (HTTP, coroutines, RxJava); (3) emulator boot not fully complete — wait for boot complete before running tests; (4) flaky setup state — use the test orchestrator (`androidx.test:orchestrator`) for per-test process isolation; (5) device dimensions / locale differences. Should recommend collecting logcat artifacts and using `--info` / `--debug` on the gradle command. Should not pretend single fix solves it.",
+      "assertions": [
+        "Names animation flag as one cause",
+        "Names IdlingResource as another cause",
+        "Mentions test orchestrator for isolation",
+        "Mentions emulator boot completion",
+        "Recommends collecting logcat for diagnosis",
+        "Acknowledges multi-cause"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i tap an item in a recyclerview at position 5",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `RecyclerViewActions` from `androidx.test.espresso:espresso-contrib`: `onView(withId(R.id.list)).perform(RecyclerViewActions.actionOnItemAtPosition<MyViewHolder>(5, click()))`. Should mention `scrollTo<...>` for finding by descendant matcher, and `actionOnItem<...>(matcher, action)` for matching by content. Should remind the user to add the espresso-contrib dependency. Should NOT invent RecyclerViewActions method signatures.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names RecyclerViewActions.actionOnItemAtPosition",
+        "Reminds to add espresso-contrib dependency",
+        "Mentions scrollTo<>(matcher) variant",
+        "Does not invent method names"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We need to test that tapping 'Open Browser' actually launches the browser with the right URL.",
+      "expected_output": "Should introduce `Espresso-Intents`: add the `androidx.test.espresso:espresso-intents` dep, use `IntentsRule` (or `IntentsTestRule` if on older versions) to enable interception. Use `Intents.intending(hasAction(Intent.ACTION_VIEW)).respondWith(...)` to stub the intent (so the browser doesn't actually open), and `intended(allOf(hasAction(Intent.ACTION_VIEW), hasData(\"https://support.example.com\")))` to assert it was sent. Should use a synthetic URL. Should warn that without stubbing, the test really would launch the browser and may hang.",
+      "assertions": [
+        "Names Espresso-Intents and IntentsRule",
+        "Shows intending(...).respondWith(...) stubbing",
+        "Shows intended(...) verification",
+        "Warns about real launch without stubbing",
+        "Uses synthetic URL"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We've outgrown plain Espresso — we need cross-app flows (system settings, share sheet). Should we switch to Appium?",
+      "expected_output": "Should explain that you don't need to leave Espresso — combine with **UiAutomator** for the cross-app / system-UI parts. UiAutomator (`androidx.test.uiautomator:uiautomator`) drives the device shell and lets you interact with notifications, system settings, share sheet, etc. Use Espresso for the in-app parts and UiAutomator for cross-app steps in the same test. Switching to Appium is a much bigger move and only justified if cross-platform (iOS) is the goal. Should defer to qa-context.md (do you need iOS too? if not, keep Espresso+UiAutomator). Cross-references appium for the cross-platform case.",
+      "assertions": [
+        "Introduces UiAutomator as the in-stack solution",
+        "Names androidx.test.uiautomator artifact",
+        "Recommends combining Espresso + UiAutomator in one test",
+        "Holds off on Appium unless iOS is also needed",
+        "Defers final call to qa-context.md",
+        "Cross-references appium"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our app makes network calls via OkHttp + Retrofit and tests pass intermittently. We're not using IdlingResource yet.",
+      "expected_output": "Should identify the missing IdlingResource as the root cause: Espresso doesn't see in-flight OkHttp work and proceeds, sometimes before responses arrive. Recommend either: (1) `okhttp-idling-resource` (community library) or build a custom `IdlingResource` that wraps OkHttp's dispatcher (`runningCallsCount()` + `queuedCallsCount() == 0`); (2) register in `@Before`, unregister in `@After`; (3) avoid the temptation of sleep. Should mention that for coroutine-based code, similar patterns exist (CountingIdlingResource around the coroutine launch points, or test-time dispatcher swaps). Cross-reference flaky-test-management.",
+      "assertions": [
+        "Identifies missing IdlingResource as root cause",
+        "Names a way to wrap OkHttp's dispatcher",
+        "Shows @Before / @After registration pattern",
+        "Refuses sleep as the fix",
+        "Mentions coroutine alternatives",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "skill_name": "flaky-test-management",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our CI has a 12% flake rate. We've been adding `--retries 3` to make the build green. The team is losing trust in the suite. What now?",
+      "expected_output": "Should check qa-context.md or ask. Should diagnose: 12% flake rate + 3 retries = catastrophic signal degradation. Recommend: (1) reduce retries to 0 or 1 (with passed-on-retry reported separately as flake telemetry); (2) introduce flake-detection tooling (Datadog CI / Buildkite Analytics / hand-rolled JUnit XML aggregation) to track flake-per-test rates; (3) triage the top-10 flakiest tests first — fix or quarantine each with a tracking issue + owner + deadline; (4) audit retry-hidden tests for real production bugs they may have been catching. Should NOT recommend keeping high retries while 'addressing flake gradually'. Cross-reference test-strategy and ci-test-orchestration.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Identifies high retry as part of the problem",
+        "Recommends flake-detection tooling",
+        "Recommends triaging top-N flakiest tests",
+        "Each quarantine has owner + deadline + issue",
+        "Audits retry-hidden tests for real bugs",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our test runs `await page.click('#save')` then `expect(saved).toBe(true)`. It passes 90% of the time. The test is flaky, right? Let's add a sleep before the assertion.",
+      "expected_output": "Should clearly say no to the sleep. Should explain that the test is detecting a timing issue — either the test should wait on an observable signal (`await expect(page.getByTestId('saved-banner')).toBeVisible()`), OR the production code has a race (the save isn't observable when click resolves). Sleep masks both possibilities. Recommend: (1) rewrite the assertion to wait on the visible state — proper auto-waiting locator-based assertion; (2) if that doesn't fix it, the production code may genuinely have a race — investigate. Cross-references playwright / cypress (or the relevant UI tool) for proper auto-wait patterns.",
+      "assertions": [
+        "Refuses to add sleep",
+        "Recommends auto-wait locator assertion",
+        "Identifies possibility of real production race",
+        "Cross-references UI tool skill",
+        "Frames sleep as masking rather than fixing"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i know if a test is actually flaky or just failing",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should give the empirical recipe: run the test against the same commit, locally, 50-100 times in a row (`pytest --count=100`, `go test -count=100`, equivalent in other runners). If it ever fails, it's flaky. If it always fails, the test or code is broken. If it always passes locally but fails in CI, the CI environment is a contributor. Should also mention checking the test's pass/fail history in CI across the *same commit* (if your CI provider tracks it) — that's the gold standard. Should NOT define flake as 'just keep rerunning until pass.'",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Gives empirical multi-run recipe",
+        "Distinguishes always-fail vs intermittent",
+        "Notes local-vs-CI environment-difference signal",
+        "References CI history on same commit",
+        "Does not pretend flake is 'just rerun more'"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our `@flaky` quarantine list has 47 tests, oldest 14 months. How do we deal with it?",
+      "expected_output": "Should recommend triage: for each quarantined test, assign one of three outcomes: (1) un-quarantine + fix (if anyone still owns and cares); (2) delete (if no one owns, no one cares, the behavior is likely covered elsewhere — most 14-month-old quarantined tests fall here); (3) re-investigate to determine whether the original cause was a real bug (sometimes production-side race conditions get hidden this way). Should establish a policy: each quarantined test gets an issue, owner, deadline. Past deadline → automatic deletion. Should warn that 14-month quarantine = dead weight providing no value; the team is implicitly relying on other coverage anyway.",
+      "assertions": [
+        "Triage approach with 3 outcomes",
+        "Most old quarantine tests likely deserve deletion",
+        "Re-investigates a few for hidden real bugs",
+        "Recommends policy (issue + owner + deadline)",
+        "Frames long-quarantine as dead weight"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our test passes locally 100/100 but fails 10% of the time in CI. The CI runs in containers with 2 CPU / 4GB RAM.",
+      "expected_output": "Should identify CI environment as a contributor. Investigate: (1) timeouts that are fine locally on fast machines are too short in resource-constrained CI; (2) /dev/shm size — Chromium / Postgres / Firefox can misbehave in small shm; (3) CPU contention — other jobs sharing the runner; (4) network behavior differences (proxy, DNS, NAT); (5) memory pressure causing slow allocations; (6) timing differences making races visible only under CI load. Recommend: raise timeouts deliberately for CI (with a comment explaining why), check container shm settings, run with `--cpus=2` locally to reproduce. Cross-reference test-environment-management.",
+      "assertions": [
+        "Lists multiple CI-environment-specific causes",
+        "Mentions /dev/shm and timeouts explicitly",
+        "Recommends reproducing locally with constrained resources",
+        "Cross-references test-environment-management",
+        "Does not just say 'add retries'"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "We have one E2E test that flakes 5% of the time. Engineers want to disable it. The test was added because of a production incident last quarter.",
+      "expected_output": "Should advise strongly against disabling. The test was added for a reason; disabling means the production incident risk returns. Recommend: (1) investigate the root cause — is the test flaky, or is the production code intermittently buggy in a way that escaped to prod last time?; (2) capture trace / logs on every failure; (3) reproduce locally and step through with `--debug` mode (Playwright Inspector, Cypress runner, etc.); (4) if the cause is a real race in production code, that's an active incident risk — fix the code. Should NOT recommend disabling 'since the incident was a while ago.' Cross-reference test-strategy and the relevant E2E skill.",
+      "assertions": [
+        "Strongly advises against disabling",
+        "Recommends investigation as primary path",
+        "Acknowledges this test may be catching a real bug",
+        "Recommends artifact capture and local repro",
+        "Cross-references test-strategy",
+        "Does not minimize the original incident"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "skill_name": "ai-augmented-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A vendor pitched us 'AI generates your entire test suite.' Should we adopt it?",
+      "expected_output": "Should check qa-context.md or ask. Should be honest: as of 2026, autonomous full-suite generation does not deliver on the hype. Generated tests tend to be brittle (literal selectors), happy-path-only, and hard to maintain. They may get you to ~60% coverage fast, but the bottom 30% you'll throw away. Recommend: (1) pilot the tool on a non-critical flow for 30-60 days; (2) measure tests authored, tests maintained, bugs missed; (3) compare honestly to current approach; (4) treat AI output as a draft requiring review, not a finished suite. Should NOT recommend adopting based on vendor narrative alone. Cross-references test-strategy.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Honest about autonomous-generation hype",
+        "Names concrete limitations (brittle, happy-path-only)",
+        "Recommends a measured pilot",
+        "Recommends honest comparison",
+        "Refuses adoption based on vendor narrative",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Self-healing tests sound great. Will Testim / Mabl save us maintenance time?",
+      "expected_output": "Should give a nuanced answer. Self-healing helps when the change is a class/ID swap with no semantic shift. It fails when the UI restructures meaningfully. The more concerning failure mode: self-healing can silently mask regressions — a locator that heals to a different button hides what should have been a test failure. Recommend: (1) every self-heal triggers an audit; (2) compare maintenance time honestly over 60 days vs a code-first suite; (3) if self-heals are mostly correct AND auditable, the tool earns its place; (4) if you investigate every heal anyway, the time savings are illusory. Should NOT pretend self-healing eliminates maintenance.",
+      "assertions": [
+        "Frames as a nuanced answer",
+        "Names where self-healing works vs fails",
+        "Calls out the silent-regression risk",
+        "Recommends auditing every heal",
+        "Recommends 60-day measured comparison",
+        "Does not pretend it eliminates maintenance"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i use playwright codegen to start a test suite",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show `npx playwright codegen https://staging.example.com` — opens a browser, records actions as code. Should warn that codegen output needs heavy review: replace literal selectors with `getByRole`/`getByLabel`, replace any `waitForTimeout` with auto-waiting assertions, refactor common flows into helpers, add edge cases codegen doesn't capture. Should frame codegen as a starting draft, not a finished test. Cross-references playwright.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows npx playwright codegen URL",
+        "Lists concrete review items (selectors, waits, helpers)",
+        "Frames codegen as draft not final",
+        "Cross-references playwright"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our team is excited about Cursor / Claude generating tests. What's a good workflow?",
+      "expected_output": "Should give a practical workflow: (1) prompt the LLM with the component file + a list of behaviors to cover (happy paths, errors, edge cases); (2) review generated code for selector quality, assertion strength, edge case coverage, brittle assumptions (hardcoded text, locale); (3) run the test, refactor what doesn't pass; (4) refactor common patterns into helpers / fixtures. Should warn: LLM-generated test code is like a junior engineer's first pass — review it before merging. Should mention that LLMs often miss boundary cases (boundary value analysis is human work — cross-reference test-design-techniques) and may invent API method names that don't exist. Cross-references playwright/jest-vitest and test-design-techniques.",
+      "assertions": [
+        "Gives concrete workflow",
+        "Lists review checklist (selectors, assertions, edges)",
+        "Warns about brittle assumptions and invented APIs",
+        "Calls out missing boundary coverage",
+        "Cross-references test-design-techniques",
+        "Treats LLM output as junior-eng-quality"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our QA team wants to use TestRigor for plain-English test authoring. Concerns?",
+      "expected_output": "Should give a balanced view. Plain-English authoring helps non-coders contribute. Concerns: (1) determinism — does the same English instruction produce the same execution? Some tools have probabilistic interpretation; (2) lock-in — can tests be exported to code (e.g., Playwright)?; (3) audit trail — for a failing test, can you see exactly what was executed?; (4) edge cases — plain English handles happy paths well; complex assertions still need fallback code; (5) maintenance — when the UI changes, who updates the natural language tests, and how do they verify? Recommend a 30-60 day pilot on non-critical flows with explicit success metrics before adopting broadly. Should NOT auto-reject or auto-recommend.",
+      "assertions": [
+        "Frames as balanced",
+        "Names determinism, lock-in, audit-trail, edge cases, maintenance concerns",
+        "Recommends a measured pilot",
+        "Defines success metrics",
+        "Does not auto-accept or auto-reject"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "AI flake analysis like Trunk and Datadog CI — worth it?",
+      "expected_output": "Should give a clear positive answer for this specific use case: AI flake classification / clustering is one of the most reliably-delivered current AI-testing wins. At scale (hundreds-of-tests, dozens-of-failures-per-week), the time saved on triage is meaningful. Recommend: track flake rate before adoption; measure 60 days; the data either shows clear time savings or it doesn't. Note: this is a different category from autonomous test generation — flake analysis works on existing tests, doesn't generate new ones. Cross-reference flaky-test-management.",
+      "assertions": [
+        "Gives a clear positive answer with conditions",
+        "Distinguishes flake analysis from test generation",
+        "Recommends measuring 60-day impact",
+        "Cross-references flaky-test-management",
+        "Honest about being one of the more delivered AI testing wins"
+      ],
+      "files": []
+    }
+  ]
+}

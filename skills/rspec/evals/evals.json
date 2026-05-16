@@ -1,0 +1,86 @@
+{
+  "skill_name": "rspec",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up RSpec for our Rails 7 app with FactoryBot, WebMock, and request specs.",
+      "expected_output": "Should check qa-context.md or ask. Should walk through adding `rspec-rails`, `factory_bot_rails`, `webmock`, `vcr` to the Gemfile test group; running `rails g rspec:install` to generate `.rspec`, `spec/spec_helper.rb`, `spec/rails_helper.rb`. Should suggest `spec/support/` for shared modules (WebMock setup, FactoryBot include) and require_all in rails_helper. Should show `WebMock.disable_net_connect!(allow_localhost: true)` and `RSpec.configure { |c| c.order = :random; c.filter_run_when_matching :focus }`. Should include a sample request spec and a sample factory. Should use synthetic data.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Names the right gems (rspec-rails, factory_bot_rails, webmock, vcr)",
+        "Generates with rails g rspec:install",
+        "Uses spec/support pattern for shared modules",
+        "Enables WebMock disable_net_connect with allow_localhost",
+        "Random order configured",
+        "Sample request spec + factory included",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our RSpec suite has many `let(:user) { create(:user) }` but tests are slow. We don't always need the user to be persisted.",
+      "expected_output": "Should explain `build_stubbed`: returns a model that looks saved (has id, persisted?) without hitting the DB. Use it whenever the test only reads attributes or method behavior on the model — no associations followed, no save. Show: `let(:user) { build_stubbed(:user) }`. Should mention also that `build` (without stubbed) is faster than `create` when the object is just being passed around in-memory. Should warn that build_stubbed has limits — code that calls .save or follows associations may break.",
+      "assertions": [
+        "Introduces build_stubbed",
+        "Distinguishes build / build_stubbed / create",
+        "Warns about limits (no save, association lookup)",
+        "Shows let usage pattern",
+        "Recommends using only where DB isn't actually needed"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i mock an external api call in a spec",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show WebMock pattern: `stub_request(:post, 'https://billing.example.com/charge').with(body: hash_including(amount: 1999)).to_return(status: 201, body: { id: 'ch_synthetic' }.to_json, headers: { 'Content-Type' => 'application/json' })`. Should mention `WebMock.disable_net_connect!(allow_localhost: true)` ensures unintended calls fail loudly. Should mention VCR as the record-and-replay alternative for third-party APIs you can't easily hand-stub. Should use synthetic data.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows stub_request usage with matchers",
+        "Names WebMock.disable_net_connect!",
+        "Mentions VCR as the record-replay alternative",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "RSpec config has `config.order = :random` and our suite started failing intermittently. Should we disable random order?",
+      "expected_output": "Should clearly say no — random order is doing its job by surfacing order-dependent specs. Recommend: reproduce with the failing seed (`rspec --seed XXXX`), bisect to find the spec that pollutes state, then fix the root cause (often: shared mutable state, missing teardown, FactoryBot sequence pollution, time / locale state leaking). Should suggest `database_cleaner-active_record` or transactional fixtures for DB cleanup between specs. Should NOT recommend disabling random order. Cross-reference flaky-test-management.",
+      "assertions": [
+        "Refuses to disable random order",
+        "Recommends reproducing with --seed",
+        "Mentions database_cleaner or transactional fixtures",
+        "Frames the failures as RSpec exposing real bugs",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We have lots of controller specs. Should we migrate to request specs?",
+      "expected_output": "Should recommend yes: controller specs are deprecated and request specs exercise the full Rails stack (router, middleware, full request/response cycle), which catches more real bugs. Migration steps: rewrite `describe MyController, type: :controller` blocks as `describe 'POST /resource', type: :request`, replace `get :show, params: {...}` with `get '/resource/:id', params: {...}`, replace `assigns(:user)` (controller-spec-only) with assertions on response body or DB state. Should warn that some controller-only matchers (like `render_template`) don't have direct request-spec equivalents — assertions should focus on outcomes (status, body, side effects). Cross-reference test-strategy.",
+      "assertions": [
+        "Strongly recommends migrating to request specs",
+        "Lists concrete migration patterns",
+        "Notes loss of controller-spec-only matchers",
+        "Reframes assertions on outcomes vs internals",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our 5000-spec suite takes 25 minutes. How do we parallelize?",
+      "expected_output": "Should recommend `parallel_tests` gem: runs RSpec across multiple processes, splitting by file. Needs per-worker DB isolation: `rake parallel:create parallel:migrate` creates myapp_test1 / myapp_test2 / etc. For cross-machine sharding in CI, configure `parallel_tests` to honor `TEST_ENV_NUMBER`. Should mention `rspec-queue` and `flatware` as alternatives. Should also recommend profiling slow specs (`config.profile_examples = 10`) — sometimes the bottleneck is a few specs you can speed up rather than parallelizing harder. Cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Recommends parallel_tests as primary",
+        "Mentions per-worker DB isolation",
+        "Mentions alternatives (rspec-queue, flatware)",
+        "Recommends profiling slow specs first",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    }
+  ]
+}

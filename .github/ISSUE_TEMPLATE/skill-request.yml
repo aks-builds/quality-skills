@@ -1,0 +1,56 @@
+name: New Skill Request
+description: Suggest a new quality engineering skill
+title: "Skill: [skill-name]"
+labels: ["new-skill"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Proposed skill name
+      description: Lowercase letters, numbers, and hyphens only. Must match the directory name.
+      placeholder: "my-skill-name"
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: What should this skill do?
+      description: One paragraph on what an agent should be able to help with after this skill is added.
+      placeholder: "This skill should help with..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: triggers
+    attributes:
+      label: Trigger phrases
+      description: |
+        What does the user say to invoke this skill? List 5-10 phrases.
+      placeholder: |
+        - "Set up Playwright for my Next.js app"
+        - "Why are my Playwright tests flaky?"
+        - "Configure parallel execution"
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope boundaries
+      description: |
+        What should this skill NOT cover? Where does it hand off to other skills?
+      placeholder: |
+        - Hands off to ci-test-orchestration for sharding/parallelism on the CI side
+        - Hands off to visual-regression for screenshot diffing
+    validations:
+      required: false
+
+  - type: textarea
+    id: similar
+    attributes:
+      label: Related skills
+      description: Which existing skills is this related to or distinct from?
+      placeholder: "Similar to playwright but focused on..."
+    validations:
+      required: false

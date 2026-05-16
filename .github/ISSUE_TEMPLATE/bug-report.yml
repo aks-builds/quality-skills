@@ -1,0 +1,49 @@
+name: Bug or Inaccuracy
+description: Report wrong CLI flags, outdated API signatures, broken cross-references, or other inaccuracies
+title: "Bug: [skill-name] [short description]"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **For security vulnerabilities, do NOT use this form** — see [SECURITY.md](../../SECURITY.md).
+
+  - type: input
+    id: skill
+    attributes:
+      label: Which skill?
+      description: Path or name of the affected skill (e.g., `playwright`).
+      placeholder: "skills/playwright"
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: What's wrong?
+      description: |
+        Describe the issue. If it's a factual claim, **link to the authoritative source**.
+        Examples:
+          - "Cypress `cy.intercept` signature is wrong — option name is `times`, not `count`"
+          - "k6 threshold syntax shown is from v0.30; current syntax requires `{}` per metric"
+          - "Selenium 4 capabilities use W3C format, not the legacy desired capabilities shown"
+      placeholder: "..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Authoritative source
+      description: URL or citation that supports your correction.
+      placeholder: "https://playwright.dev/docs/..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested fix (optional)
+      description: Proposed wording or PR plan.
+    validations:
+      required: false

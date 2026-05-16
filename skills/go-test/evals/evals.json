@@ -1,0 +1,88 @@
+{
+  "skill_name": "go-test",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up a table-driven test for our Go email validator. We're on Go 1.22.",
+      "expected_output": "Should check qa-context.md or ask. Should produce a `TestIsValidEmail` with a `[]struct{name,input,want}` slice of cases, `for _, tc := range cases { t.Run(tc.name, func(t *testing.T) { t.Parallel(); ... }) }`. Should mention that Go 1.22+ doesn't require the `tc := tc` capture line (the loopvar fix). Should use synthetic email inputs. Should mention running with `go test -race ./...` and recommend running with `-v` during development. Should NOT invent testing package APIs.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Uses table-driven pattern with t.Run",
+        "Uses t.Parallel() in subtests",
+        "Notes Go 1.22+ loopvar fix removes tc := tc need",
+        "Recommends go test -race",
+        "Uses synthetic emails",
+        "Does not invent testing APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our tests pass locally but fail intermittently in CI. The CI logs show race conditions.",
+      "expected_output": "Should immediately recommend `go test -race ./...` in CI (if not already). The race detector catches genuine data races on concurrent access to shared memory. Common causes: package-level state mutated by tests, goroutines started in tests without `sync.WaitGroup` or similar, shared maps without locks. Should suggest investigating each race report's stack traces — race reports name the conflicting goroutines and lines. Should also recommend `go.uber.org/goleak` to catch goroutine leaks that may correlate with the same code. Should NOT recommend disabling -race.",
+      "assertions": [
+        "Recommends -race in CI",
+        "Names common race causes (package state, goroutines, shared maps)",
+        "Recommends reading race report stack traces",
+        "Mentions goleak for goroutine leaks",
+        "Refuses to disable -race as a fix"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i test an http handler without making real network calls",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Two options: (1) `httptest.NewRecorder()` for unit-level tests of the handler — call `handler.ServeHTTP(rec, req)` with `httptest.NewRequest(...)` and assert on `rec.Code`, `rec.Body`; (2) `httptest.NewServer(handler)` for tests that need a real HTTP roundtrip via `http.Get` to `srv.URL`. Should show both patterns briefly. Should use synthetic URLs and payloads. Should NOT invent net/http/httptest APIs.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names httptest.NewRecorder for unit-level",
+        "Names httptest.NewServer for full HTTP",
+        "Shows both patterns",
+        "Uses synthetic data",
+        "Does not invent APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We have a function that parses untrusted JSON. How can fuzz testing help us?",
+      "expected_output": "Should introduce fuzz tests: `func FuzzParseJSON(f *testing.F)` with seed inputs via `f.Add(...)` and the fuzz target `f.Fuzz(func(t *testing.T, b []byte) { _ = ParseJSON(b) })`. The goal is to detect inputs that cause panics, infinite loops, or violate invariants the test asserts. Run with `go test -fuzz=FuzzParseJSON -fuzztime=30s` initially; for ongoing coverage, run periodically (e.g., nightly). When a failure is found, the offending input is saved to `testdata/fuzz/` and becomes a regression case. Should warn that fuzz tests must remain fast — don't do heavy I/O inside the fuzz target.",
+      "assertions": [
+        "Shows FuzzX function signature and structure",
+        "Names f.Add for seed inputs",
+        "Names -fuzz and -fuzztime flags",
+        "Mentions testdata/fuzz/ for regression cases",
+        "Warns against heavy I/O in fuzz target",
+        "Does not invent fuzz APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We're using `reflect.DeepEqual` to compare structs and the failure message is useless. Better option?",
+      "expected_output": "Should introduce `github.com/google/go-cmp/cmp`: `cmp.Diff(want, got)` produces a readable `-want +got` diff. Show: `if diff := cmp.Diff(want, got); diff != \"\" { t.Errorf(\"... mismatch (-want +got):\\n%s\", diff) }`. Should mention go-cmp options: `cmpopts.IgnoreFields(...)` for ignoring known-dynamic fields, `cmp.Comparer(...)` for custom equality, `protocmp.Transform()` for protobuf messages. Should NOT recommend hand-writing per-field assertions.",
+      "assertions": [
+        "Introduces github.com/google/go-cmp/cmp",
+        "Shows cmp.Diff usage pattern",
+        "Mentions cmpopts.IgnoreFields",
+        "Mentions cmp.Comparer or protocmp",
+        "Does not recommend manual per-field assertions",
+        "Does not invent cmp APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use testify, or stick with stdlib testing?",
+      "expected_output": "Should give a balanced trade-off. Stdlib: zero dependencies, idiomatic in many open-source projects, hand-rolled assertions force you to think about what failure mode you're checking. Testify: cleaner assertion code, fewer lines, easy-to-skim test bodies. Recommend: stdlib for libraries / public-facing packages where zero deps matter; testify for application code where readability wins. The two coexist fine — many teams use both. Defer to qa-context.md (existing patterns, dependency policy).",
+      "assertions": [
+        "Frames as a trade-off",
+        "Acknowledges both have merits",
+        "Recommends context-specific choice",
+        "Notes the two coexist fine",
+        "Defers to qa-context.md"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "skill_name": "karate",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're considering Karate for our new API testing project. The team has mixed Java/non-Java members. Why might we pick Karate over rest-assured?",
+      "expected_output": "Should check qa-context.md or ask. Should explain Karate's value props: feature-file DSL is more accessible to non-Java contributors, no glue code (no step definitions to write), single DSL across API + mocks + perf + UI, built-in parallel runner, JSON-native matcher syntax. Should also be honest about trade-offs: rest-assured fits better for code-first teams comfortable in Java; Karate's DSL has its own learning curve; refactoring is less ergonomic in feature files vs Java. Should defer the final decision to qa-context.md and cross-reference rest-assured.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Names concrete Karate strengths (DSL, no step defs, single tool across layers)",
+        "Honest about trade-offs vs rest-assured",
+        "Defers final decision to qa-context.md",
+        "Cross-references rest-assured"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "How do I share an auth token across multiple Karate feature files?",
+      "expected_output": "Should introduce the `callonce` pattern: write an `auth.feature` that logs in and sets a token, then call it from the `Background` of other features via `* def auth = callonce read('classpath:helpers/auth.feature')` and use the token via `configure headers = { Authorization: '#(\"Bearer \" + auth.authToken)' }`. Should explain `callonce` caches per scope (scenario/feature) so login runs once per cached scope. Should mention that for global session caching (across all features), you can put auth in `karate-config.js`. Should use synthetic credentials.",
+      "assertions": [
+        "Names callonce and explains caching behavior",
+        "Shows reusable auth.feature pattern",
+        "Demonstrates header injection from the cached value",
+        "Mentions karate-config.js as alternative for global scope",
+        "Uses synthetic credentials"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i match a response when some fields are dynamic like ids and timestamps",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce Karate's fuzzy matchers: `#string`, `#number`, `#regex pattern`, `#? predicate`, `#notnull`, `#array`, `#object`. Should show an example where `id` uses `#string`, `createdAt` uses `#regex` matching ISO 8601, `amount` uses `#? _ > 0`. Should also mention `match contains` for partial matching when only a subset of fields matters. Should NOT invent matcher names.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names real Karate fuzzy markers (#string, #regex, #?, #notnull, etc)",
+        "Shows a concrete example with multiple markers",
+        "Mentions match contains for partial assertions",
+        "Does not invent marker syntax"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our Karate suite is fast locally but takes 30+ minutes in CI. We're running serially. How do we parallelize?",
+      "expected_output": "Should introduce the parallel Runner pattern: `Runner.path(\"classpath:features\").parallel(N)` in a top-level JUnit class. Should explain the N is the thread count and `cuumberJson(true)` (or similar) preserves per-feature reporting. Should also mention sharding across CI machines (Karate runner per shard, each shard runs a subset) as the next step beyond per-machine parallelism. Should warn about shared state (test data, accounts) that breaks under parallel — recommend per-thread fixtures or unique IDs. Should cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Shows Runner.path(...).parallel(N) pattern",
+        "Explains shard-across-machines as next step",
+        "Warns about shared state under parallel",
+        "Cross-references ci-test-orchestration",
+        "Does not invent runner API"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our billing dependency is unreliable in staging. Can we mock it with Karate?",
+      "expected_output": "Should introduce Karate Netty mocks: write a `mock-billing.feature` with scenarios using `pathMatches(...)` and `methodIs(...)` predicates and `def response = ...` to define what each matching request returns. Start the mock via `MockServer.feature(...).http(port).build()` and point the system-under-test at `localhost:<port>`. Should mention this is for service virtualization; for richer matching/proxying use wiremock (cross-reference). Should use synthetic IDs.",
+      "assertions": [
+        "Introduces Karate Netty mocks",
+        "Shows pathMatches/methodIs scenario structure",
+        "Mentions MockServer.feature(...).http(port).build()",
+        "Cross-references wiremock for richer virtualization",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Can the same Karate feature also serve as a load test?",
+      "expected_output": "Should explain `karate-gatling`: add the dependency, write a Gatling Simulation in Scala that wraps `karateFeature(\"classpath:features/x.feature\")` inside `karateProtocol(...)`, and inject users at the rate you want. Should note the load test and the regression test share the same feature so they don't drift. Should mention that mixing a load profile with a regression run is awkward — generally separate the Simulation file from the regression runner. Should cross-reference gatling skill for Gatling-specific patterns. Should NOT pretend Karate replaces a dedicated perf strategy.",
+      "assertions": [
+        "Introduces karate-gatling",
+        "Shows Simulation/karateFeature/karateProtocol structure",
+        "Highlights the shared-feature benefit",
+        "Recommends separating load Simulation from regression runner",
+        "Cross-references gatling skill",
+        "Does not over-claim Karate replaces a perf strategy"
+      ],
+      "files": []
+    }
+  ]
+}

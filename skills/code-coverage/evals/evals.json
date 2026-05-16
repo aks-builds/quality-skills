@@ -1,0 +1,89 @@
+{
+  "skill_name": "code-coverage",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Management wants us to hit 95% code coverage. We're at 60%. Should we go for it?",
+      "expected_output": "Should check qa-context.md or ask. Should advise against pursuing the absolute number as a goal. Reasons: (1) 95% line coverage with weak assertions is no better than 60% line coverage with strong assertions; (2) chasing the number incentivizes meaningless tests, over-mocking, and refactor resistance; (3) mutation testing is the real quality signal (cross-reference). Recommend reframing the conversation with management: target coverage of changed lines, per-module risk-tier targets (90% for billing/auth, lower for glue code), pair with mutation testing where it matters. Should NOT pretend chasing 95% is a quality strategy. Cross-references mutation-testing and test-strategy.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Advises against chasing 95% as a goal",
+        "Names concrete failure modes of chasing the number",
+        "Recommends coverage-of-changed-lines",
+        "Recommends per-module risk-tier targets",
+        "Cross-references mutation-testing and test-strategy",
+        "Does not endorse the 95% target"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our PR CI keeps failing because someone deleted dead code and coverage dropped 0.3%.",
+      "expected_output": "Should diagnose: the gate is on absolute total coverage, which falls when uncovered dead code is removed (denominator shrinks). This is exactly the wrong incentive — it penalizes good cleanup. Recommend: (1) switch the gate to coverage of changed lines (introduced lines, not the whole codebase); (2) add an override mechanism (label, comment) for legitimate exceptions; (3) treat coverage as a soft signal in PR comments rather than a blocking gate; (4) if a gate is required, set the absolute threshold low enough that small deletions don't trip it. Should NOT recommend abandoning dead-code cleanup.",
+      "assertions": [
+        "Identifies gate-on-absolute-total as the anti-pattern",
+        "Recommends gate on changed-lines coverage",
+        "Recommends override mechanism",
+        "Recommends soft signal over hard gate",
+        "Refuses to discourage dead-code cleanup",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i exclude generated code from coverage",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show language-specific exclusion patterns: Jest `coveragePathIgnorePatterns`, Vitest `coverage.exclude`, pytest-cov `--cov-config=.coveragerc` with `[run] omit`, JaCoCo `excludes` in Gradle config, Coverlet `/p:Exclude` flag. Should also mention generated-file conventions (`*.gen.ts`, `*_pb.py`, etc.) that exclusion patterns can match. Should warn: don't exclude code you should be testing because 'it's not really code' — generated DTOs often have validators or computed fields that genuinely need tests.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names multiple language-specific exclusion mechanisms",
+        "Provides concrete pattern examples",
+        "Warns about over-excluding",
+        "Does not invent config keys"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Should we use line coverage or branch coverage?",
+      "expected_output": "Should explain the difference clearly: line coverage = 'did any test execute this line'; branch coverage = 'did any test cover both outcomes of each if/switch'. Branch coverage is a meaningfully stronger signal — line coverage hides untested error / edge branches. Recommend tracking branch coverage as the primary number when the tool supports it (most do). Should note: branch coverage requires more tests to reach equivalent percentages, so set thresholds lower (e.g., line 80%, branch 70%). Should defer to mutation testing for the deeper signal. Cross-references mutation-testing.",
+      "assertions": [
+        "Explains line vs branch concretely",
+        "Recommends branch coverage as primary",
+        "Notes branch percentages are naturally lower than line",
+        "Mentions mutation testing as deeper signal",
+        "Cross-references mutation-testing"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our coverage report says 85% but production bugs slip through anyway. What's going on?",
+      "expected_output": "Should explain that coverage measures execution, not assertion strength. Possible causes: (1) tests cover lines but assert weakly (`assert result is not None`); (2) tests cover happy paths but not error paths; (3) integration / contract / E2E gaps that unit tests can't catch; (4) coverage from low-value glue code is masking gaps in high-value logic; (5) tests over-mock so real integration paths are never exercised. Recommend: (1) review the kinds of bugs escaping and trace them back to which test layer should have caught them; (2) run mutation testing on the modules where bugs escape; (3) reconsider test-strategy distribution. Should NOT suggest raising coverage threshold.",
+      "assertions": [
+        "Explains coverage != assertion strength",
+        "Names 4+ concrete causes of escape",
+        "Recommends bug-trace to test-layer review",
+        "Recommends mutation testing on hot spots",
+        "Refuses to raise coverage threshold as fix",
+        "Cross-references test-strategy and mutation-testing"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "What's the right coverage target for our billing service?",
+      "expected_output": "Should refuse a one-size-fits-all number. For billing — high-stakes, high-impact, regulatory exposure — recommend: (1) high line + branch coverage on the core calculation / charging / refund paths (90%+ on those modules specifically); (2) pair with mutation testing on those modules; (3) accept lower coverage in glue / wiring code; (4) any uncovered branch in billing is reviewed manually — not 'fix the gate,' but 'is this intentionally untestable or a real gap?' Should defer to qa-context.md for regulatory specifics (PCI for cardholder data). Cross-references mutation-testing.",
+      "assertions": [
+        "Refuses one-size target",
+        "Recommends high coverage on core billing paths",
+        "Recommends mutation testing on hot paths",
+        "Accepts lower coverage on glue",
+        "Manual review of uncovered branches",
+        "Defers to qa-context.md for regulatory",
+        "Cross-references mutation-testing"
+      ],
+      "files": []
+    }
+  ]
+}

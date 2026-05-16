@@ -1,0 +1,88 @@
+{
+  "skill_name": "locust",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're a Python team. Set up a Locust test for our checkout flow targeting 100 RPS with login + browse + checkout, weighted toward browse.",
+      "expected_output": "Should check qa-context.md or ask. Should produce a `locustfile.py` with a class extending `HttpUser` (or `FastHttpUser` for higher throughput), `on_start` that logs in with synthetic creds and sets the Authorization header, weighted `@task(3)` browse and `@task(1)` checkout, and `wait_time = constant_pacing(...)` chosen to hit the RPS target. Should use `name=` on URLs that contain IDs to group stats. Should mention running with `--headless -u <N> -r <N> -t 5m`. Should set `--exit-code-on-error 1` and consider a custom `events.quitting` listener for an SLO gate. Should NOT invent decorators or method names.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Uses HttpUser or FastHttpUser with @task weights",
+        "Login in on_start with synthetic credentials",
+        "Uses name= for grouped stats",
+        "Uses constant_pacing for RPS-shaped goal",
+        "Mentions --headless + duration in CI",
+        "Suggests exit-code gating for CI",
+        "Does not invent locust API"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Locust stats are unreadable — every URL with an ID shows up as a separate row.",
+      "expected_output": "Should explain that Locust groups requests by URL by default. Fix: pass `name='GET /users/:id'` (or any logical label) to every parameterized request call. Show the difference: `self.client.get(f'/users/{user_id}')` vs `self.client.get(f'/users/{user_id}', name='GET /users/:id')`. Should mention that this is one of the highest-ROI changes in any Locust test. Should remind to use the same label convention as Grafana / Prometheus dashboards if downstream metrics are also keyed off this.",
+      "assertions": [
+        "Identifies missing name= as the cause",
+        "Shows fix with name= on .client.get / .client.post",
+        "Recommends consistent labels across observability stack",
+        "Does not pretend Locust auto-groups URLs",
+        "Recommends a consistent label convention"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i run locust distributed across multiple machines",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should explain master/worker: one machine runs `locust -f file.py --master`, others run `locust -f file.py --worker --master-host <master-ip>`. Master coordinates and aggregates stats; workers generate load. Should mention that workers don't run the web UI and that the master should be reachable on the configured port. For containerized environments, suggest the `locustio/locust` image with two deployment kinds (one master, N workers). Should warn that the master is a single point of failure — for very large runs, consider commercial offerings.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Explains --master / --worker model",
+        "Mentions master-host flag and port reachability",
+        "Suggests containerized master + workers setup",
+        "Acknowledges master SPOF",
+        "Does not invent flag names"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our Locust run shows 50 RPS but we set -u 200. Why isn't it 200 RPS?",
+      "expected_output": "Should explain: `-u 200` is concurrent users, NOT RPS. With `wait_time = between(1,3)` and ~response time 0.5s, each user does roughly 0.4 req/s; 200 users * 0.4 = ~80 req/s, and with slow responses it's lower. To hit a specific RPS, use `wait_time = constant_pacing(N)` so each user fires every N seconds. RPS ≈ (users) / N. Alternatively, scale users until throughput matches the goal; this is the closed-model way and is sensitive to response time. Should reframe -u as concurrency, not throughput.",
+      "assertions": [
+        "Distinguishes -u (concurrency) from RPS",
+        "Explains wait_time impact on throughput",
+        "Recommends constant_pacing for RPS-shaped goals",
+        "Frames closed-model concurrency clearly",
+        "Does not invent locust semantics"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our Locust tests pass with --exit-code-on-error 1 but our actual SLO is p95 < 300ms, not just zero errors. How do we gate on that?",
+      "expected_output": "Should introduce the `events.quitting` listener pattern: register a handler that reads `environment.stats.total.get_response_time_percentile(0.95)` and sets `environment.process_exit_code = 1` if it exceeds the SLO. Show the code. Should mention that this can also gate on `fail_ratio`, per-endpoint percentiles (`environment.stats.get(name='GET /api/products', method='GET').get_response_time_percentile(0.95)`), or custom counters. Should warn that small-sample tests (< few hundred requests) produce noisy percentiles — set a minimum-request gate too.",
+      "assertions": [
+        "Introduces events.quitting listener",
+        "Sets environment.process_exit_code on SLO breach",
+        "Shows percentile retrieval API",
+        "Mentions per-endpoint gating",
+        "Warns about noisy percentiles for small samples",
+        "Does not invent the stats API"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use Locust or k6 for our Python-heavy team?",
+      "expected_output": "Should frame as a trade-off. Locust: same Python the team already uses, full Python ecosystem for custom logic, slower per-VU throughput, distribution requires master/worker. k6: JS-based (new language to learn), single binary, very high throughput per node, declarative thresholds, modern observability integrations. Recommend evaluating: how much custom Python the perf tests need (favor Locust), how much pure load throughput required (favor k6), and what the on-call team is comfortable reading. Defer to qa-context.md. Cross-reference k6.",
+      "assertions": [
+        "Frames as a trade-off",
+        "Names concrete strengths of each",
+        "Recommends evaluating against custom-logic vs throughput axis",
+        "Defers to qa-context.md",
+        "Cross-references k6"
+      ],
+      "files": []
+    }
+  ]
+}

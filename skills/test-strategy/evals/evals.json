@@ -1,0 +1,89 @@
+{
+  "skill_name": "test-strategy",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're a 5-person startup building a React + Node SaaS. We deploy daily. What test strategy should we adopt?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend a pragmatic strategy: heavy weight on unit + integration (Jest/Vitest for both Node and React via RTL); a small smoke E2E layer (3-10 critical flows in Playwright/Cypress) gating PRs; contract tests later if/when services split out. Should advise against a heavy BDD layer at this stage (engineers writing for engineers — cross-reference bdd-anti-patterns). Should recommend keeping PR gates fast (sub-5 min ideally) so daily-deploy cadence is preserved. Should suggest revisiting strategy when team grows past 15 engineers or when service count grows beyond 3.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends pragmatic, small-team strategy",
+        "Heavier unit/integration than E2E",
+        "Small smoke E2E layer for PR gating",
+        "Advises against BDD at this scale",
+        "Considers daily-deploy cadence in PR gate design",
+        "Notes when to revisit"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our suite is 800 E2E Selenium tests, 50 unit tests, 0 contract tests. CI takes 90 minutes and flakes constantly.",
+      "expected_output": "Should diagnose the ice cream cone anti-pattern. Recommend climbing back down: (1) audit the 800 E2E tests — most are likely covered by faster layers or duplicate each other; categorize as critical-journey / movable-down / delete; (2) push business logic tests to unit; (3) push API/integration tests to integration-test layer (supertest/pytest-api/rest-assured); (4) introduce contract tests if it's a multi-service shop; (5) keep a deliberately small E2E layer (~20-50 critical journeys). Should warn this is a 6-12 month effort, not a sprint. Should cross-reference flaky-test-management for the symptom. Cross-references the language-specific unit testing skills.",
+      "assertions": [
+        "Identifies ice cream cone anti-pattern",
+        "Recommends climbing back down the pyramid",
+        "Provides concrete audit/triage steps",
+        "Realistic about timeline",
+        "Cross-references flaky-test-management",
+        "Cross-references unit testing and contract testing skills"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "should we aim for 100% test coverage",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should clearly say no: 100% coverage is a misleading goal. High coverage with weak assertions is worse than lower coverage with strong ones. The right metric is risk-weighted coverage: high-risk × high-impact code gets near-100%, low-risk × low-impact code gets less. Should mention mutation testing as the real test-quality signal (cross-reference). Should recommend coverage as a gap-finder, not a gate. Cross-references code-coverage.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Says no to 100% coverage as a goal",
+        "Names risk-weighted coverage as the better frame",
+        "Mentions mutation testing as the quality signal",
+        "Cross-references code-coverage",
+        "Does not endorse 100% coverage targets"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We have 12 microservices and zero contract tests. Cross-service deploys keep breaking. What's the strategy?",
+      "expected_output": "Should recommend adopting consumer-driven contract testing with Pact: start a Pact Broker (or Pactflow), pick one consumer/provider pair as a proof-of-concept, expand outward. Wire `can-i-deploy` into deploy gates. Should warn that contract testing is operational overhead (broker, state setup, team education) and to roll out gradually with pending pacts so provider builds don't immediately break. Cross-reference pact-contract-testing. Should also mention API integration tests at boundaries and schema-diff CI gates for OpenAPI/GraphQL/protobuf APIs.",
+      "assertions": [
+        "Recommends Pact / consumer-driven contracts",
+        "Starts with a PoC pair, not org-wide rollout",
+        "Names can-i-deploy gating",
+        "Mentions pending pacts for safe rollout",
+        "Cross-references pact-contract-testing",
+        "Mentions schema-diff gates as complement"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should accessibility testing be part of our strategy?",
+      "expected_output": "Should clearly say yes for any public-facing product, especially in regulated regions (EU EAA, US Section 508, ADA). Accessibility is a quality dimension, not optional. Recommend: (1) automated scans via axe-core integrated into component / E2E tests; (2) Lighthouse CI on key pages; (3) periodic manual audits with assistive tech; (4) accessibility identifiers in the app (same investment also benefits testability). Should warn that automated scans catch a fraction of issues — keyboard nav, screen-reader UX, and cognitive load need humans. Cross-reference accessibility-testing.",
+      "assertions": [
+        "Strongly affirms accessibility is part of strategy",
+        "Mentions regulatory context (EAA / Section 508 / ADA)",
+        "Recommends axe + Lighthouse + manual audits",
+        "Notes automated scans are insufficient alone",
+        "Cross-references accessibility-testing"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our PR CI takes 22 minutes including E2E. Engineers complain. Should we cut the E2E?",
+      "expected_output": "Should reframe the question: 22 minutes PR CI is a strategy problem more than a tooling problem. Options: (1) keep only smoke E2E in PR CI (5-10 critical flows), move the full E2E suite to post-merge / scheduled; (2) parallelize E2E via sharding (cross-reference ci-test-orchestration); (3) audit each E2E — many likely duplicate unit/integration coverage and can be deleted; (4) consider whether the team is paying for E2E that should be component/integration tests. Should NOT recommend just cutting E2E across the board — keep the critical journeys. Cross-reference ci-test-orchestration and the relevant E2E skills.",
+      "assertions": [
+        "Reframes as a strategy problem",
+        "Recommends smoke E2E on PR + full E2E post-merge",
+        "Mentions sharding for parallelism",
+        "Recommends audit before mass deletion",
+        "Cross-references ci-test-orchestration",
+        "Does not advise blanket E2E cuts"
+      ],
+      "files": []
+    }
+  ]
+}

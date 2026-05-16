@@ -1,0 +1,88 @@
+{
+  "skill_name": "visual-regression",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're building a React component library with Storybook. Should we add visual regression testing?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend yes — component libraries are the highest-ROI place for visual regression because regressions propagate to every consumer. Recommend: Chromatic (commercial but Storybook-native, low setup) or Loki (open-source). Each story becomes a snapshot. Should outline: every PR triggers Chromatic, diffs are reviewed in their dashboard, baselines accepted explicitly. Should warn about dynamic content masking, font stability, and animation freezing for stable snapshots. Cross-references jest-vitest (for the unit-level testing of the same components) and accessibility-testing (for the complementary a11y scans on the same stories).",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends yes for component libraries",
+        "Names Chromatic + Loki as primary options",
+        "Story-per-snapshot pattern",
+        "Mentions dynamic content / fonts / animations",
+        "Cross-references jest-vitest and accessibility-testing"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Playwright snapshot tests pass on my Mac but fail on the Linux CI runner with pixel differences.",
+      "expected_output": "Should diagnose: cross-OS font / anti-aliasing differences are real and can't be eliminated by tweaking thresholds. Fix: generate baselines on the same OS / browser version as CI. Concrete: run `npx playwright test --update-snapshots` inside the same Docker image used in CI (or a CI-only generation job), commit those baselines. Never generate baselines on Mac/Windows and expect them to pass on Linux CI. Should also recommend pinning Playwright version + browser binaries. Should NOT recommend raising pixel-difference tolerance to mask the issue.",
+      "assertions": [
+        "Identifies cross-OS rendering as the cause",
+        "Recommends generating baselines in CI environment",
+        "Names Docker image consistency",
+        "Recommends pinning Playwright/browser versions",
+        "Refuses tolerance-bump as fix"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i ignore timestamps and avatars in visual tests",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show Playwright's `mask:` option: `await expect(page).toHaveScreenshot({ mask: [page.locator('.timestamp'), page.locator('.avatar')] })`. Should also mention: replacing dynamic values with fixed test data via test setup (e.g., a fixed test user with a fixed avatar); using `prefers-reduced-motion` to freeze animations; waiting for `document.fonts.ready`. Should cross-reference setting deterministic test data via test-data-management.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows mask: option with locators",
+        "Mentions replacing values with fixed test data",
+        "Mentions prefers-reduced-motion",
+        "Mentions document.fonts.ready",
+        "Cross-references test-data-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our team approves all visual baseline changes wholesale to keep CI green. Is that OK?",
+      "expected_output": "Should clearly say no — wholesale approval defeats the entire point of visual regression testing. By approving all diffs, you're accepting any regression that happens to be in the diff. Recommend: (1) review every diff in the PR review UI (Chromatic / Applitools / vendor) or compare manually for Playwright snapshots; (2) treat baseline updates like code changes — code review applies; (3) if diffs feel constant, the test setup is unstable — fix the noise (masking, animations, fonts) rather than rubber-stamping; (4) consider whether visual testing scope is too broad — focus on stable UI areas. Should NOT endorse wholesale approval.",
+      "assertions": [
+        "Strongly opposes wholesale approval",
+        "Recommends diff review per PR",
+        "Frames baselines as code requiring review",
+        "Recommends fixing noise sources",
+        "Recommends scope reduction if needed",
+        "Does not endorse rubber-stamping"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should we use Applitools or Percy?",
+      "expected_output": "Should give a balanced trade-off. Applitools Eyes: industry-leading AI visual diff, broadest tooling integrations, premium pricing. Percy (BrowserStack-owned): mature, good CI integrations, strong cross-browser story, generally less expensive. Both are commercial; the right pick depends on budget, existing tool relationships (BrowserStack for grid?), and AI-diff quality needs. Recommend a 30-60 day pilot on a representative subset of your suite to compare false-positive rate, false-negative rate, baseline-management ergonomics, and total cost. Should defer to qa-context.md and cross-reference cloud-test-grids (since BrowserStack ↔ Percy is one relationship).",
+      "assertions": [
+        "Frames as a trade-off",
+        "Names strengths of each",
+        "Recommends 30-60 day pilot",
+        "Mentions BrowserStack ↔ Percy relationship",
+        "Defers to qa-context.md",
+        "Cross-references cloud-test-grids"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Visual tests catch UI bugs. Does that mean we don't need accessibility testing?",
+      "expected_output": "Should clearly say no — visual and accessibility testing catch different classes of issues. Visual: catches CSS regressions, layout bugs, z-index, color shifts (what you SEE). Accessibility: catches keyboard navigation, screen-reader compatibility, semantic HTML, ARIA correctness, focus order (what assistive tech experiences). A passing visual test does not mean the page is accessible; a passing a11y scan does not mean the page looks right. They complement each other. Cross-reference accessibility-testing. Should NOT pretend they're substitutes.",
+      "assertions": [
+        "Clearly states they catch different issue classes",
+        "Names what visual catches",
+        "Names what a11y catches",
+        "Frames as complementary",
+        "Cross-references accessibility-testing",
+        "Refuses substitute framing"
+      ],
+      "files": []
+    }
+  ]
+}

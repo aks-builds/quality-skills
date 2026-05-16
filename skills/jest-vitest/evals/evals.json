@@ -1,0 +1,86 @@
+{
+  "skill_name": "jest-vitest",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're starting a new TypeScript Node project. Should we use Jest or Vitest?",
+      "expected_output": "Should check qa-context.md or ask. Should give a balanced answer: for greenfield TS Node, Vitest is the modern default (faster, ESM-native, better TS DX, simpler config). Jest still wins for React Native or when an existing infrastructure / plugin ecosystem matters. Both share most of the same API surface so migration is workable but not free. Should defer to qa-context.md (existing patterns, CI infra, team familiarity). Should NOT declare a universal winner.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends Vitest for greenfield TS Node",
+        "Acknowledges Jest's strengths (RN, plugin ecosystem)",
+        "Notes API compatibility makes migration workable but not free",
+        "Defers to qa-context.md",
+        "Does not declare a universal winner"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My Jest test does `expect(fetchUser('user-42')).resolves.toMatchObject({ id: 'user-42' })` and passes even when fetchUser rejects. Why?",
+      "expected_output": "Should immediately identify the missing `await` / `return`. `.resolves` returns a promise — without `await`, the test function returns before the assertion runs and the test 'passes.' Fix: `await expect(fetchUser('user-42')).resolves.toMatchObject({ id: 'user-42' })`. Should mention that this is one of the most common silent-pass bugs in Jest/Vitest. Should suggest ESLint plugin `jest/no-standalone-expect` and `jest/valid-expect` to catch these at lint time.",
+      "assertions": [
+        "Identifies missing await as the cause",
+        "Shows the correct awaited form",
+        "Calls this out as a common silent-pass bug",
+        "Recommends ESLint plugin / rules",
+        "Does not invent matcher API"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i mock a module that gets imported by the code under test",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show `vi.mock('./api', () => ({ fetchUser: vi.fn().mockResolvedValue({ id: 'user-42' }) }))` or `jest.mock` equivalent. Should emphasize that `vi.mock` / `jest.mock` are **hoisted** to the top — they must appear before the imports they affect (the runner moves them automatically, but referencing imported variables inside the factory fails). For partial mocks, show `vi.importActual` / `jest.requireActual` to keep some exports real. Should use synthetic data.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows vi.mock / jest.mock factory pattern",
+        "Explains the hoisting behavior",
+        "Shows partial mock with importActual / requireActual",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We're using fake timers but our setTimeout-based debounce test still flakes. The mock callback fires before we expect.",
+      "expected_output": "Should diagnose: probably `vi.useRealTimers()` / `jest.useRealTimers()` wasn't called in `afterEach`, so fake timers leak across tests; or the code under test uses a different timer source (e.g., `setImmediate`, `process.nextTick`, `Date.now()`) that fake timers don't capture by default. Fix: (1) ensure setup/teardown is symmetric; (2) pass `{ shouldAdvanceTime: false, toFake: ['setTimeout', 'setInterval', 'Date'] }` (or equivalent) to control which APIs are faked; (3) audit the code under test for time sources you haven't mocked. Should NOT recommend giving up on fake timers and using real sleeps.",
+      "assertions": [
+        "Identifies fake-timer leakage as a possible cause",
+        "Identifies missing time-source mocks as another",
+        "Recommends setup/teardown symmetry",
+        "Mentions controlling toFake list explicitly",
+        "Refuses to recommend real-time waits as the fix"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We have 100% line coverage but production bugs keep slipping through. What's wrong with our testing?",
+      "expected_output": "Should explain that 100% line coverage doesn't mean 100% behavior coverage. Common failure modes: (1) tests that execute the code but make weak/trivial assertions; (2) tests that mock dependencies so thoroughly the real integration is never tested; (3) tests for happy paths only — edge cases / error paths uncovered; (4) snapshot tests that always pass after `-u` regeneration. Recommend mutation testing (cross-reference mutation-testing) to measure the real strength of the assertions; recommend reviewing what kinds of bugs are escaping (logic, data, contract, perf, integration) and where in the pyramid they should have been caught (cross-reference test-strategy). Should NOT recommend raising the coverage gate.",
+      "assertions": [
+        "Explains that line coverage != behavior coverage",
+        "Names weak-assertion and over-mocking as risks",
+        "Recommends mutation testing as a real-quality signal",
+        "Cross-references mutation-testing and test-strategy",
+        "Refuses to recommend raising coverage as the fix",
+        "Recommends triage by bug category"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our Vitest suite is 5000 tests and takes 4 minutes locally. We want it under 1 minute on CI. Options?",
+      "expected_output": "Should outline: (1) `--shard=1/N` to split across multiple CI workers (Vitest 1.x+ supports this directly); (2) ensure tests don't share global state (parallel execution surfaces order dependence); (3) move slow tests (integration-shaped) to a separate config and run them less often; (4) use `vitest related` for PR runs to test only files affected by the diff; (5) check for unnecessary `beforeAll` setup that runs even for filtered tests; (6) ensure `jsdom` isn't used for tests that don't need a DOM (use `node` env). Should warn about parallelism limits — adding more shards has diminishing returns when worker startup dominates. Cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Names --shard and CI matrix as primary lever",
+        "Mentions test-isolation requirement for parallelism",
+        "Recommends splitting slow integration tests",
+        "Mentions vitest related / changedSince for PR runs",
+        "Warns about diminishing returns from over-sharding",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    }
+  ]
+}

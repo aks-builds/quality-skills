@@ -1,0 +1,85 @@
+{
+  "skill_name": "pytest-api",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up pytest + requests for our Python API regression suite. We want shared auth, base URL config, and parallel runs.",
+      "expected_output": "Should check qa-context.md or ask. Should produce a `conftest.py` with session-scoped fixtures for `base_url` (from env var with a default), `access_token` (session-scoped login), and a function-scoped `authed` Session with `Authorization` header set. Should mention `requests.Session()` for connection pooling. Should recommend folder layout (`tests/api/`, `conftest.py`, `schemas/`, `fixtures/`). Should mention `pytest -n auto` for parallel via pytest-xdist. Should warn against committing tokens — use env vars in CI. Should use synthetic credentials.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Produces conftest.py with session-scoped auth and base_url",
+        "Uses requests.Session for connection pooling",
+        "Sensible folder layout",
+        "Mentions pytest-xdist for parallel runs",
+        "Uses synthetic credentials",
+        "Warns about not committing tokens"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our API has an OpenAPI spec. How do we make sure the implementation actually matches the spec?",
+      "expected_output": "Should recommend `schemathesis` — point it at the OpenAPI URL or file and it generates property-based tests for every endpoint. Should show `schemathesis run https://staging.example.com/openapi.json` and `schemathesis run --checks all openapi.json`. Should mention this catches drift: status codes, response shape, undocumented endpoints, undefined error responses. Should suggest running it in CI as a contract-check job (cross-reference ci-test-orchestration), and that it complements (doesn't replace) targeted regression tests. Should NOT pretend schemathesis tests business logic.",
+      "assertions": [
+        "Names schemathesis",
+        "Shows CLI invocation",
+        "Explains what it catches (drift, undocumented endpoints, error shapes)",
+        "Recommends running in CI",
+        "Clarifies it complements, not replaces, regression tests"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i mock an external service my api calls",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `responses` for `requests`-based code and `respx` (or `pytest-httpx`) for `httpx`-based code. Should show a concrete example: `@responses.activate` decorator, `responses.add(responses.POST, url, json=..., status=201)`, and then `responses.calls` for assertions about what was called. Should remind the user to mock only **external** services — not their own API. Should use synthetic URLs.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names responses (for requests) and respx/pytest-httpx (for httpx)",
+        "Shows decorator + add + calls pattern",
+        "Warns against mocking own API",
+        "Uses synthetic URLs"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We're running pytest -n 8 and tests are flaky in parallel but pass when run with -n 0. What gives?",
+      "expected_output": "Should diagnose parallel-safety issues: (1) shared test data (rows created by one worker affect another — fix with per-worker namespacing or per-test data); (2) shared session-scoped fixtures with mutable state — refine scope or make immutable; (3) DB tests stepping on each other — use per-worker schemas / databases (xdist provides `worker_id`); (4) global env var or singleton state; (5) caching at the API side (response caching key not including a request-unique value). Should recommend `pytest-xdist`'s `worker_id` fixture for partitioning resources. Should NOT suggest running with -n 0 as the fix.",
+      "assertions": [
+        "Identifies shared data / state as the cause",
+        "Mentions pytest-xdist worker_id fixture for partitioning",
+        "Recommends per-worker DB schemas or namespacing",
+        "Does NOT recommend running serial as a fix",
+        "Suggests immutability for session fixtures"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We have a FastAPI app. Should we use TestClient (in-process) or hit a deployed instance?",
+      "expected_output": "Should explain the trade-off. TestClient (in-process httpx-based): fast, deterministic, easy DB rollback, no network. Deployed instance: catches real network/TLS/container issues, includes middlewares behaving as in prod. Recommend a hybrid — most tests via TestClient for speed; a smaller smoke set against a deployed instance for confidence. Should cross-reference supertest for the equivalent Node trade-off. Should note that `httpx.AsyncClient(transport=ASGITransport(app=app))` is the explicit way to keep async behavior real even in-process. Should defer the exact ratio to qa-context.md.",
+      "assertions": [
+        "Frames as a trade-off, not a winner",
+        "Recommends a hybrid",
+        "Mentions ASGITransport for async correctness in-process",
+        "Defers ratio to qa-context.md",
+        "Cross-references supertest"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Parametrize a test that validates email format — 5 valid, 5 invalid inputs.",
+      "expected_output": "Should produce a `@pytest.mark.parametrize` with a list of (email, expected_status) tuples, using `pytest.param(...)` with `id=...` for readable test IDs. Should use synthetic emails (qa.user@example.com, malformed strings, edge cases like length boundaries, unicode local-parts, ip-literal forms). Should NOT include any real-looking email addresses. Should mention that for very large input sets, loading from a JSON fixture and looping is cleaner than 100 inline tuples.",
+      "assertions": [
+        "Uses @pytest.mark.parametrize",
+        "Includes diverse synthetic inputs (boundary, unicode, malformed)",
+        "Uses pytest.param with id= for readable names",
+        "Mentions JSON fixture as alternative for large sets",
+        "Uses synthetic data only"
+      ],
+      "files": []
+    }
+  ]
+}

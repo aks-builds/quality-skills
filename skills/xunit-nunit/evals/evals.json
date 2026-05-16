@@ -1,0 +1,84 @@
+{
+  "skill_name": "xunit-nunit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're starting a new .NET 8 service. Should we use xUnit, NUnit, or MSTest?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend xUnit for greenfield .NET 8 (alignment with Microsoft templates, modern docs, simple instance-per-test model). NUnit is also a strong choice for teams that prefer richer attribute features (Values / combinatorial). MSTest rarely the right new-project choice unless mandated. Should defer to qa-context.md (existing team experience). Cross-references jest-vitest / junit-testng for cross-stack patterns where useful.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends xUnit for new .NET 8",
+        "Acknowledges NUnit's combinatorial strengths",
+        "Discourages MSTest unless mandated",
+        "Defers to qa-context.md"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our team is using Moq 4.20+ and one engineer flagged the telemetry change. Should we switch mocking libraries?",
+      "expected_output": "Should explain the situation honestly: Moq 4.20+ introduced telemetry that some teams considered a policy issue. Options: (1) pin Moq to a pre-telemetry version (e.g., 4.18.x) if Moq's API is the right fit; (2) migrate to NSubstitute (clean syntax, no telemetry concern) — significant find-replace but the patterns translate cleanly; (3) FakeItEasy as another alternative. Recommend reviewing the org's open-source policy before deciding, and doing a small pilot of NSubstitute on one project before committing org-wide. Should NOT pretend the issue doesn't exist.",
+      "assertions": [
+        "Acknowledges the Moq telemetry change",
+        "Recommends pinning, migrating, or both as options",
+        "Names NSubstitute and FakeItEasy as alternatives",
+        "Recommends a pilot before org-wide migration",
+        "Defers to qa-context.md / org policy"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i test our asp.net minimal apis endpoint in-process",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `WebApplicationFactory<Program>` from `Microsoft.AspNetCore.Mvc.Testing`. Show a test class implementing `IClassFixture<WebApplicationFactory<Program>>`, calling `factory.CreateClient()` for an HttpClient, and using `PostAsJsonAsync` / `GetAsync` against route paths. Mention overriding services in `WithWebHostBuilder(...).ConfigureServices(...)` to swap dependencies for tests. Should use synthetic payloads. Should NOT invent the type name.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Names WebApplicationFactory<Program>",
+        "Uses IClassFixture for sharing the factory",
+        "Shows ConfigureServices override for test doubles",
+        "Uses synthetic data",
+        "Does not invent type names"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We have an NUnit suite where [OneTimeSetUp] seeds a user and tests share it. They pass individually but flake in bulk. What's the fix?",
+      "expected_output": "Should identify [OneTimeSetUp] + shared mutable state as the cause. Fixes: (1) move user creation to [SetUp] for per-test isolation; (2) keep [OneTimeSetUp] but make the seeded user read-only — never mutate; (3) use per-test transactions that rollback (especially with EF Core / database state); (4) introduce a factory pattern where each test creates its own user. Should NOT recommend running in serial as the fix. Should cross-reference flaky-test-management.",
+      "assertions": [
+        "Identifies shared state as the cause",
+        "Recommends per-test isolation patterns",
+        "Mentions transaction-per-test for DB scenarios",
+        "Refuses serial-execution-as-fix",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We want FluentAssertions but our legal team flagged the v8 license. Options?",
+      "expected_output": "Should explain: FluentAssertions 7.x is permissively licensed; 8.x introduced a license change that affects some orgs. Options: (1) pin FluentAssertions to 7.x in `csproj` (`<PackageReference Include=\"FluentAssertions\" Version=\"[7.0,8.0)\" />`); (2) switch to Shouldly (similar fluent style, permissive license); (3) stay with built-in `Assert.*` if both fail org policy. Should recommend pinning 7.x as the lowest-friction option for existing FluentAssertions code, and Shouldly for new code if the team wants a fully clean license posture. Should NOT pretend the v8 license isn't a concern for some orgs.",
+      "assertions": [
+        "Acknowledges the FluentAssertions v8 license change",
+        "Names pinning 7.x as the simplest path",
+        "Names Shouldly as a clean-license alternative",
+        "Recommends consulting legal before adoption",
+        "Provides example version range pin"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our xUnit tests run serial by default. How do we parallelize, and what are the risks?",
+      "expected_output": "Should explain xUnit's parallelism model: tests in different test classes run in parallel by default; tests in the same class run sequentially. To parallelize within a class, use `[Collection]` carefully or restructure. To enable assembly-level parallelism, configure `xunit.runner.json` (`parallelizeAssembly: true`). Risks: shared static state, database collisions, port conflicts, file paths, environment variables. Solutions: per-test fixtures, unique IDs, ephemeral resources (random ports, tmp dirs). Cross-reference ci-test-orchestration for cross-machine sharding.",
+      "assertions": [
+        "Explains class-level vs assembly-level parallelism",
+        "Names xunit.runner.json for assembly parallelization",
+        "Lists concrete shared-state risks",
+        "Recommends per-test resource isolation",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    }
+  ]
+}

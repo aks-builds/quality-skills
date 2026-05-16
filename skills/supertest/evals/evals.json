@@ -1,0 +1,84 @@
+{
+  "skill_name": "supertest",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up supertest + Jest for our Express + Postgres API. We want each test to start with a clean database.",
+      "expected_output": "Should check qa-context.md or ask. Should produce a Jest setup: install `supertest` + types, export the `app` (not the listener) from the source so it's importable. Should use `request(app)` directly so supertest manages the ephemeral server. For Postgres isolation: recommend transactional rollback per test (open a transaction in `beforeEach`, rollback in `afterEach`) or Testcontainers for a fresh Postgres per file. Should mention `jest.config` settings for setup/teardown and avoiding shared state. Should cross-reference testcontainers skill. Should use synthetic data.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Imports app, not the listener",
+        "Recommends transaction-per-test isolation strategy",
+        "Mentions Testcontainers as an alternative",
+        "Cross-references testcontainers",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My supertest tests pass individually but fail when I run the whole suite. What's happening?",
+      "expected_output": "Should diagnose the common causes of test interdependence: (1) shared in-memory state (modules, caches, singletons) not reset between tests; (2) database rows leaking — fix with transactional rollback or truncate-per-test; (3) shared global mocks across files (Jest module mocks bleed unless `jest.resetModules`); (4) env vars set by one test and read by another; (5) tests relying on creation order. Should recommend running with `--runInBand` to confirm parallelism is the cause or not. Should suggest a test-isolation review, not just adding `afterEach` cleanups blindly.",
+      "assertions": [
+        "Names shared state as the likely cause",
+        "Mentions transactional rollback or truncate per test",
+        "Mentions module mocks leaking",
+        "Recommends --runInBand for diagnosis",
+        "Recommends test-isolation review, not just symptomatic fixes"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i test a multipart file upload with supertest",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should show `request(app).post('/upload').attach('file', '/path/to/sample.png').field('description', 'profile')` pattern. Should mention the field name must match the server's expected multipart field. Should suggest keeping sample fixtures small (a few KB) and committed to the test fixtures folder. Should warn about not committing large binaries or anything resembling production user data.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows .attach(field, path) with optional .field()",
+        "Mentions matching the server's expected field name",
+        "Recommends small synthetic fixtures",
+        "Warns against committing real user data"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We use NestJS. How do we wire supertest into a NestJS test module?",
+      "expected_output": "Should show the standard NestJS pattern: `Test.createTestingModule({ imports: [AppModule] }).compile()`, then `moduleRef.createNestApplication()`, `await app.init()`, and `request(app.getHttpServer())`. Should remind to `await app.close()` in afterAll. Should mention that you can override providers in the testing module via `.overrideProvider(...).useValue(...)` for mocking dependencies. Should warn that importing the full AppModule may pull in real DB/cache providers — override them or use `@nestjs/testing` patterns to swap with in-memory equivalents.",
+      "assertions": [
+        "Shows Test.createTestingModule pattern",
+        "Uses app.getHttpServer() for supertest",
+        "Calls app.init() before tests, app.close() after",
+        "Mentions overrideProvider for dependency injection",
+        "Warns about pulling in real infra via AppModule"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We want to share a logged-in session across multiple supertest calls in a test.",
+      "expected_output": "Should introduce `request.agent(app)`: it persists cookies across requests. Should provide an example: agent.post('/auth/login').send({...}); subsequent agent.get(...) calls automatically include the session cookie. Should mention that for JWT-based auth (no cookies), you typically capture the token from the login response and set it manually via `.set('Authorization', 'Bearer ' + token)` on each call — agents help only when cookies carry session state. Should use synthetic credentials.",
+      "assertions": [
+        "Introduces request.agent(app)",
+        "Explains it persists cookies",
+        "Distinguishes cookie-based vs JWT-based auth handling",
+        "Uses synthetic credentials",
+        "Does not invent agent methods"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use supertest in-process or write API tests against a real deployed staging?",
+      "expected_output": "Should explain the trade-off. In-process supertest: fast (10-100x), deterministic, easy DB isolation, but misses real network, TLS, container, infra. Staging tests: realistic, catches deployment / config bugs, but slower, harder to keep deterministic, requires the env to be up. Recommend a hybrid: most tests in-process via supertest; a smaller smoke set against staging to catch infra-shaped issues. Defer the ratio to qa-context.md. Mention production-testing skill for going further (synthetic monitoring).",
+      "assertions": [
+        "Frames as a trade-off, not a winner",
+        "Recommends hybrid (in-process bulk + staging smoke)",
+        "Defers ratio to qa-context.md",
+        "Cross-references production-testing for monitoring",
+        "Does not present them as equivalent"
+      ],
+      "files": []
+    }
+  ]
+}

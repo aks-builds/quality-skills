@@ -1,0 +1,88 @@
+{
+  "skill_name": "selenium-grid",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We run 500 Selenium tests a day. Our CI provider charges per minute. Should we self-host Selenium Grid?",
+      "expected_output": "Should check qa-context.md or ask. Should give an honest cost analysis: 500 tests/day is low-to-medium scale where managed grids (BrowserStack/Sauce/LambdaTest) are usually cheaper net-of-opex. Self-hosting saves on per-minute charges but adds: infra cost, ops time, monitoring, on-call. Recommend: (1) do the math — estimate managed grid annual cost vs. self-host (infra + ops); (2) if uncertain, start with a managed grid and migrate later if volume grows; (3) self-hosting is more attractive at thousands of tests/day. Should NOT auto-recommend self-hosting. Cross-references cloud-test-grids.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Frames as a cost / opex trade-off",
+        "Notes 500 tests/day is low-to-medium scale",
+        "Recommends doing the math first",
+        "Cross-references cloud-test-grids",
+        "Does not auto-recommend self-host"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our docker-selenium Chrome nodes keep crashing with 'tab crashed' / 'renderer killed' errors mid-test.",
+      "expected_output": "Should identify the most common cause: `/dev/shm` too small. Recommend raising `shm_size: 2gb` (or larger) on both hub and node containers. If still crashing: check memory limits on container/pod (Chromium can eat memory fast under multiple sessions), set lower `SE_NODE_MAX_SESSIONS`, and verify the browser version matches the driver. Should mention pinning image tags to avoid silent version drift. Should NOT recommend restarting nodes as a workaround.",
+      "assertions": [
+        "Identifies /dev/shm as primary cause",
+        "Recommends shm_size: 2gb",
+        "Mentions memory limits and SE_NODE_MAX_SESSIONS",
+        "Mentions browser/driver version mismatch",
+        "Recommends pinning image tags",
+        "Does not recommend just restarting"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do we autoscale selenium grid on kubernetes",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce KEDA (Kubernetes Event-driven Autoscaling) with the Selenium Grid scaler: KEDA monitors the session queue depth; when it grows, KEDA scales up the node deployments; when empty, scales down. Should show the high-level pattern: install KEDA, deploy Selenium Grid via Helm chart, configure ScaledObject pointing at the hub. Should mention setting min/max replicas and cooldown periods. Should warn that scaling browser nodes is slow (image pull, container start) — pre-warm a baseline. Should NOT pretend HPA on CPU alone works for this (browser nodes don't show CPU pressure as backlog grows).",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Introduces KEDA with Selenium-Grid scaler",
+        "Mentions ScaledObject configuration",
+        "Mentions min/max replicas and cooldown",
+        "Warns about slow scale-up of browser nodes",
+        "Rejects HPA-on-CPU-only as inadequate"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We're on Selenium 3 with our Grid 3 setup. Can we upgrade tests to Selenium 4 while keeping Grid 3?",
+      "expected_output": "Should advise upgrading Grid as well. Selenium 4 client communicates via W3C WebDriver; Grid 3 used the older JSON Wire Protocol. There's some backward compatibility but it's brittle — capabilities format differs, some commands no longer route correctly. Recommend upgrading both client and grid to 4.x in lockstep. Should outline migration steps: (1) test Grid 4 in staging with a small client subset; (2) verify W3C capabilities work; (3) migrate production with a rollback plan. Cross-reference selenium for the client-side migration notes. Should NOT pretend mismatched versions are safe.",
+      "assertions": [
+        "Advises upgrading Grid in lockstep with client",
+        "Explains W3C vs JSON Wire Protocol",
+        "Recommends staging trial first",
+        "Mentions rollback planning",
+        "Cross-references selenium",
+        "Does not pretend mismatch is safe"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should we use Selenoid instead of vanilla Selenium Grid?",
+      "expected_output": "Should give a balanced trade-off. Selenoid (Aerokube) is a lightweight Go-based hub with better per-session resource accounting and lower overhead than Java-based Grid. Wins: faster, easier ops, less RAM at scale. Trade-offs: less integrated with the official Selenium ecosystem, smaller community, separate config conventions. Recommend Selenoid for teams that have outgrown vanilla Grid's overhead and want a lighter footprint. Vanilla Grid remains the safer default for most teams. Should defer to qa-context.md for the volume / opex trade-off.",
+      "assertions": [
+        "Frames as a trade-off",
+        "Names Selenoid's concrete advantages",
+        "Acknowledges trade-offs",
+        "Recommends vanilla Grid as safer default",
+        "Defers to qa-context.md"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our grid's session queue keeps growing during PR CI. Sessions wait 5+ minutes for a node.",
+      "expected_output": "Should diagnose capacity vs. demand mismatch. Recommend: (1) check current `SE_NODE_MAX_SESSIONS` and node count — if you have 10 nodes × 4 sessions = 40 concurrent, but CI launches 100 in parallel, the queue grows; (2) add nodes or raise per-node sessions (within memory limits); (3) introduce autoscaling (KEDA) so the grid grows during PR bursts; (4) audit if tests are actually closing drivers (leaked sessions hold capacity); (5) check `SE_SESSION_REQUEST_TIMEOUT` — too short and tests fail; too long and they wait excessively. Should mention metrics-driven sizing (queue depth, active sessions). Cross-reference flaky-test-management for session-leak debugging.",
+      "assertions": [
+        "Identifies capacity vs demand as the cause",
+        "Recommends adding nodes or raising max sessions",
+        "Mentions autoscaling via KEDA",
+        "Audits for session leaks (driver.quit())",
+        "Mentions SE_SESSION_REQUEST_TIMEOUT tuning",
+        "Cross-references flaky-test-management"
+      ],
+      "files": []
+    }
+  ]
+}

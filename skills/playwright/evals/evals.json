@@ -1,0 +1,89 @@
+{
+  "skill_name": "playwright",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're starting a new Playwright suite for our Next.js app on GitHub Actions. We want Chromium + WebKit, parallel execution, and traces on retry. Walk me through the config and folder layout.",
+      "expected_output": "Should check `.agents/qa-context.md` first (or ask the smallest set of clarifying questions). Should recommend `@playwright/test` with TypeScript. Should produce a `playwright.config.ts` with `fullyParallel: true`, `forbidOnly: !!process.env.CI`, `retries: 2` in CI, `trace: 'on-first-retry'`, `screenshot: 'only-on-failure'`, and projects for Desktop Chrome and Desktop Safari (WebKit). Should suggest a `tests/` folder layout and a separate setup project for auth if relevant. Should mention sharding via `--shard=X/Y` for GitHub Actions matrix runs and recommend the official Playwright Docker image. Should explicitly cross-reference the ci-test-orchestration skill for matrix details.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends TypeScript bindings explicitly",
+        "Produces a config with the documented fields (no invented options)",
+        "Recommends `trace: 'on-first-retry'`",
+        "Mentions sharding via --shard for parallelism",
+        "Cross-references ci-test-orchestration",
+        "Uses synthetic example URLs/credentials"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My Playwright tests are randomly failing on `await page.click('.submit-btn')` — sometimes the button isn't ready. I added `await page.waitForTimeout(500)` and it helped. Is this the right fix?",
+      "expected_output": "Should clearly say no, `waitForTimeout` is not the right fix. Should explain Playwright's auto-waiting (attached, visible, stable, receiving events, enabled). Should recommend replacing the CSS class selector with a user-facing locator (`getByRole('button', { name: 'Submit' })`) and either letting auto-wait do its job or asserting on preconditions (e.g., `expect(locator).toBeEnabled()` before click). Should warn that `.submit-btn` is brittle and likely contributes to the race. Should mention enabling `trace: 'on-first-retry'` to see exactly what state the page was in when the test ran.",
+      "assertions": [
+        "Rejects waitForTimeout as the fix",
+        "Explains auto-waiting conditions",
+        "Recommends getByRole over CSS class",
+        "Suggests trace on retry for debugging",
+        "Does not suggest implicit waits or sleeps",
+        "Frames the brittle selector as part of the root cause"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i mock the orders api in playwright",
+      "expected_output": "Should treat the casual phrasing as valid. Should explain `page.route` (per-page) vs `context.route` (per-context) with a concrete example fulfilling a JSON response for `**/api/orders`. Should mention that route handlers can also `continue` (passthrough with modifications) and `abort`. Should warn that mocking the network is great for deterministic tests but loses real contract coverage — for that, point to pact-contract-testing or backend integration tests. Should use synthetic data in the example.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows page.route with fulfill",
+        "Mentions continue and abort options",
+        "Warns about contract coverage trade-off",
+        "Cross-references pact-contract-testing",
+        "Uses synthetic data (no real customer info)"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We have 400 Playwright tests and each one logs in. The suite takes 35 minutes. How do we speed this up?",
+      "expected_output": "Should diagnose two leverage points: (a) reuse auth state via `storageState`, (b) shard across CI workers. Should walk through a setup project that logs in once, calls `page.context().storageState({ path })`, and configures other projects with `use: { storageState: ... }` and `dependencies: ['setup']`. Should mention sharding (`--shard=1/N`) and recommend a CI matrix. Should note that `workers` controls in-process parallelism on a single machine and is bounded by CPU. Should cross-reference ci-test-orchestration. Should NOT suggest disabling tests or removing auth coverage.",
+      "assertions": [
+        "Recommends storageState reuse via a setup project",
+        "Shows the dependencies: ['setup'] pattern",
+        "Recommends sharding across CI workers",
+        "Distinguishes workers (in-process) from shards (across machines)",
+        "Cross-references ci-test-orchestration",
+        "Does not recommend skipping/removing tests"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Should I use Playwright or Cypress for our new project?",
+      "expected_output": "Should recognize this as a tool-comparison question. Should give the honest, balanced trade-offs without picking a side blindly: Playwright = multi-browser (WebKit/Firefox/Chromium), out-of-process driving, real cross-origin support, trace viewer; Cypress = in-browser, time-travel debugger, component testing maturity, single-domain runtime with workarounds for cross-origin. Should defer the final answer to the user's qa-context.md (existing team skill, language, browsers in scope, multi-tab/multi-window needs). Should explicitly point at the cypress skill for Cypress-specific details rather than re-litigating both tools at length.",
+      "assertions": [
+        "Frames it as a trade-off, not a winner",
+        "Names concrete strengths of each (multi-browser vs in-browser)",
+        "Defers to qa-context.md for the final decision",
+        "Cross-references the cypress skill for parity",
+        "Does not invent feature claims about either tool"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Our Playwright trace from CI shows the test failing at line 42, but the screenshot looks fine. How do I dig in?",
+      "expected_output": "Should explain how to download the trace artifact from CI and open it with `npx playwright show-trace trace.zip` (or via trace.playwright.dev). Should walk through what the trace viewer provides: action timeline, before/after DOM snapshots, network log, console log, and source line highlighting. Should suggest checking: (a) the action timeline for retries, (b) the network log for unexpected responses/4xx/5xx, (c) the console for JS errors, (d) the before-DOM snapshot to see if the element was actually present and actionable. Should remind the user that the final screenshot may not represent the failing moment — the trace's action-step screenshots are more useful.",
+      "assertions": [
+        "Tells the user how to open the trace (show-trace or trace.playwright.dev)",
+        "Lists what the trace viewer contains (DOM snapshots, network, console, source)",
+        "Recommends a triage order (timeline → network → console → DOM snapshot)",
+        "Notes that the final screenshot can be misleading",
+        "Does not invent trace viewer features",
+        "Cross-references flaky-test-management for systemic issues"
+      ],
+      "files": []
+    }
+  ]
+}

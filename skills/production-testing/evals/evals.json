@@ -1,0 +1,93 @@
+{
+  "skill_name": "production-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We deploy daily but only test in pre-prod. Production incidents keep slipping through. Where do we start with production testing?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend a layered approach: (1) define SLOs for critical endpoints first — without numerical targets, you can't tell if production is healthy; (2) add synthetic monitoring for critical flows running every 1-5 minutes (Datadog Synthetics / Checkly / similar); (3) add RUM for client-side products; (4) wire alerts on SLO burn rate (not just hard thresholds); (5) introduce canary deploys + feature flags for safer rollouts. Should warn that production testing without observability prereqs causes outages, not learning. Cross-references chaos-engineering and feature-flag-testing. Should NOT recommend production chaos before SLOs are in place.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Starts with SLO definition",
+        "Adds synthetic monitoring",
+        "Adds RUM",
+        "Alerts on burn rate",
+        "Introduces canary + flags",
+        "Warns about prereqs",
+        "Cross-references chaos-engineering and feature-flag-testing"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our synthetic tests show 99.99% success but our customers are complaining. What's wrong?",
+      "expected_output": "Should explain that synthetics measure what scripts experience from specific locations under specific conditions — not what real users experience. Possible gaps: (1) RUM would show real user errors that synthetics miss (slow device, poor network, specific browser); (2) synthetics may not cover the flows customers complain about; (3) synthetics may run from data center IPs, missing CDN / DNS issues at user ISPs; (4) synthetic intervals (every 5 min) miss short outages real users hit. Recommend: (1) compare synthetic data to RUM data side-by-side; (2) augment synthetics with the flows customers actually complain about; (3) run synthetics from realistic geographies and network conditions. Should NOT trust synthetic 99.99% as ground truth.",
+      "assertions": [
+        "Distinguishes synthetic from real-user experience",
+        "Names RUM as ground truth",
+        "Identifies coverage gaps",
+        "Identifies location / network gaps",
+        "Identifies interval gaps",
+        "Recommends RUM + synthetic comparison",
+        "Does not trust synthetic as ground truth"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do we do canary deploys",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should outline: (1) deploy the new version to a small subset (5-10% of traffic or pods); (2) compare metrics (error rate, latency p99, business KPIs) between canary and baseline; (3) if metrics are within SLO, promote; if regressed, rollback. Tools: Flagger (K8s-native), Argo Rollouts (K8s analysis templates), Spinnaker + Kayenta (mature), LaunchDarkly / Statsig progressive rollouts (flag-based). For starting out, manual canary (1 pod of 10) with dashboards watched by an engineer is a reasonable first step. Should warn about the prerequisites: defined metrics + baseline + rollback plan. Cross-references feature-flag-testing.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Outlines canary process",
+        "Names Flagger / Argo Rollouts / Kayenta / flag-based tools",
+        "Suggests manual canary as starting point",
+        "Names prerequisites (metrics, baseline, rollback)",
+        "Cross-references feature-flag-testing"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Should we do load testing against production?",
+      "expected_output": "Should advise strong caution. Load testing against production without coordination is self-inflicted DDoS. Acceptable patterns: (1) very-low-traffic synthetic load (orders of magnitude below normal traffic, blended in); (2) load test against a production-shadow / read-replica that mirrors prod scale; (3) load test against a perf environment matching prod topology; (4) for genuine prod load tests, coordinate with SRE, schedule, set explicit traffic caps, monitor SLO impact, have rollback / abort criteria. Should mention RUM and production traffic give continuous load-shape data without explicit load testing. Cross-reference k6 / gatling / jmeter for the load tooling and chaos-engineering for the broader 'tests with blast radius' discipline.",
+      "assertions": [
+        "Advises strong caution",
+        "Names acceptable patterns (low blended, shadow, perf env)",
+        "Requires coordination + caps + monitoring for prod load",
+        "Mentions RUM as continuous load data",
+        "Cross-references perf tools",
+        "Cross-references chaos-engineering"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our SLO is 99.9% success rate for /checkout. We're at 99.85% this week. Panic?",
+      "expected_output": "Should explain SLO + error budget framing: 99.9% target means 0.1% allowed error budget over the window. 99.85% = 0.15% errors = burning faster than allowed. Recommend: (1) check the error budget window (28-day typical) — has the burn rate exceeded the windowed target?; (2) investigate top error patterns — is this one issue or noise; (3) compare to baseline — is this a regression or normal variance?; (4) the goal isn't 100% — error budget exists to allow some failure; if regressed deliberately for feature velocity, that's a valid choice if intentional. Should NOT advise immediate panic — provides framing for SLO-driven response. Cross-reference test-strategy.",
+      "assertions": [
+        "Frames as SLO + error budget",
+        "Distinguishes burn rate vs window total",
+        "Recommends investigating error patterns",
+        "Compares to baseline",
+        "Notes that intentional budget burn is sometimes OK",
+        "Cross-references test-strategy"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Is testing in production really safe? It sounds risky.",
+      "expected_output": "Should give a balanced view. Risks: bad tests = real user impact; without rollback, panic outages. Benefits: catches what pre-prod can't (scale, real-data, real-environment, real-user diversity). The right answer is layered safety: (1) observability + SLOs as prerequisites; (2) read-only / side-effect-free synthetics; (3) feature-flag-driven exposure (deploy != release); (4) canary with automated rollback; (5) chaos with strict blast radius caps; (6) on-call ready to respond. Done right, production testing IS the safer practice — it catches issues earlier with smaller blast radius than waiting for customers to report them. Should NOT pretend production testing is risk-free, and should NOT pretend pre-prod alone is sufficient. Cross-reference chaos-engineering and feature-flag-testing.",
+      "assertions": [
+        "Frames as balanced",
+        "Names risks honestly",
+        "Names benefits",
+        "Names layered safety (SLOs, flags, canary, chaos, on-call)",
+        "Reframes that done-right it's safer than ignore-and-react",
+        "Refuses both 'risk-free' and 'pre-prod-only is fine' framings",
+        "Cross-references chaos-engineering and feature-flag-testing"
+      ],
+      "files": []
+    }
+  ]
+}

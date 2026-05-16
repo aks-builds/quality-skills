@@ -1,0 +1,89 @@
+{
+  "skill_name": "test-design-techniques",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a function that takes an age (integer 0-150). How should we test it?",
+      "expected_output": "Should check qa-context.md or ask. Should apply equivalence partitioning + boundary value analysis: partitions are negative, 0-150, above max, non-integer, null; boundaries are -1, 0, 1, 149, 150, 151. Should produce a concrete table of cases. Should suggest representative test names and recommend running these in pytest / jest / appropriate framework. Should remind that the goal is one representative per partition plus the boundary cases — not 150 cases for 'all valid ages.'",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Applies equivalence partitioning correctly",
+        "Applies boundary value analysis (especially -1, 0, 1, 149, 150, 151)",
+        "Produces concrete case table",
+        "Names representative test patterns",
+        "Avoids testing every age in the valid range"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our checkout has 4 boolean flags (member, has_coupon, international, expedited) and 3 price tiers. That's 48 combinations. Do we test all?",
+      "expected_output": "Should not insist on full Cartesian — 48 is borderline manageable but pairwise covers the critical interactions in ~6-10 cases. Should walk through using pairwise (PICT or similar) to generate the case set covering every pair of input values. Should mention constraints — e.g., 'expedited' may not be valid with one of the price tiers — and how to express them in PICT. Should recommend pairwise plus explicit hand-picked edge cases (e.g., the highest-revenue combination). Cross-references the test-strategy skill for risk-weighting.",
+      "assertions": [
+        "Identifies pairwise as the right technique",
+        "Names PICT or similar tool",
+        "Mentions constraint syntax",
+        "Recommends pairwise + manual edge cases",
+        "Cross-references test-strategy",
+        "Doesn't insist on full Cartesian"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i test our order state machine",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should recommend state-transition testing: enumerate states (Cart, PendingPayment, Paid, Shipped, Delivered, Cancelled), enumerate events / transitions, produce a test per valid transition plus tests for invalid transitions (Delivered → ship should reject). Should provide a concrete transition table with test labels. Should mention that the state diagram lives somewhere — keep it in sync with code. Should NOT recommend testing only the happy path.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Recommends state-transition testing",
+        "Provides concrete transition table",
+        "Includes invalid-transition tests",
+        "Recommends keeping the state model in sync with code",
+        "Does not stop at happy path only"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We want to test our JSON parser. It needs to handle arbitrary inputs. Suggestions?",
+      "expected_output": "Should recommend property-based testing as the primary technique — parsers are exactly where property tests shine. Suggest hypothesis (Python), fast-check (JS), jqwik (JVM), FsCheck (.NET), or fuzz testing if on Go. Properties to assert: (a) parse(toString(x)) == x for valid x (round-trip); (b) parse(garbage) raises a specific exception type, never panics; (c) parser respects max-depth / max-size limits. Should also add example-based tests for known edge cases: empty, very deep nesting, Unicode strings, numeric edge cases (Infinity, NaN, very large). Should warn that property tests with poor properties are no better than no tests. Cross-reference go-test (fuzzing) and pytest.",
+      "assertions": [
+        "Recommends property-based testing for parsers",
+        "Names language-specific property tools",
+        "Suggests concrete properties (round-trip, error shape, limits)",
+        "Adds example-based edge cases",
+        "Warns about weak property design",
+        "Cross-references relevant runner skills"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We have a Scenario Outline with 80 rows of test data in our Cucumber feature. The team complains it's slow and unreadable.",
+      "expected_output": "Should diagnose the anti-pattern: an 80-row Scenario Outline is usually a unit-level test in disguise. Recommend extracting the underlying logic and writing parameterized unit tests in the host language (parametrize in pytest, @Theory in JUnit 5, table-driven in Go) with the same 80 cases. The Cucumber layer should keep only the user-facing behavior — maybe 3-5 representative scenarios that exercise the integration of components. Should cross-reference bdd-anti-patterns. Should remind that 80 rows × end-to-end overhead = wasted minutes per CI run.",
+      "assertions": [
+        "Identifies Scenario Outline of 80 rows as anti-pattern",
+        "Recommends moving to parameterized unit tests in host runner",
+        "Keeps a small representative subset at BDD layer",
+        "Cross-references bdd-anti-patterns",
+        "Names host-language parametrize patterns",
+        "Quantifies the cost savings"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "What edge cases am I likely missing in my tests for a date-handling function?",
+      "expected_output": "Should give an error-guessing checklist for dates: (1) DST transitions (spring-forward and fall-back); (2) leap years (Feb 29); (3) year boundaries (Dec 31 / Jan 1); (4) timezone offsets (UTC, half-hour zones like India, Nepal, Iran); (5) Unix epoch (1970-01-01) and just-before; (6) far-future dates (year 9999, year 10000); (7) parsing locale-specific date strings; (8) null / empty inputs; (9) ISO 8601 vs locale-specific formats; (10) midnight precisely. Should mention that property-based testing can also flush out date bugs (cross-reference). Should remind the user to write a regression test for any production date bug they've encountered.",
+      "assertions": [
+        "Lists at least 6 concrete date edge cases",
+        "Includes DST, leap year, timezone offsets",
+        "Includes epoch and far-future",
+        "Mentions locale-specific format issues",
+        "Mentions property-based testing as a complement",
+        "Recommends regression tests for past production bugs"
+      ],
+      "files": []
+    }
+  ]
+}

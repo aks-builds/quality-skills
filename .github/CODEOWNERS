@@ -1,0 +1,17 @@
+# CODEOWNERS for quality-skills
+#
+# These owners are auto-requested for review on every PR. Combined with
+# branch protection that requires a CODEOWNER approval on `main`, this
+# guarantees a human review on changes — especially important for a
+# repo whose contents are loaded directly into AI agents.
+
+# Default owner for everything in the repo.
+*                       @aks-builds
+
+# Security-sensitive paths — kept explicit for visibility.
+/.github/               @aks-builds
+/.github/workflows/     @aks-builds
+/.github/scripts/       @aks-builds
+/.claude-plugin/        @aks-builds
+/SECURITY.md            @aks-builds
+/LICENSE                @aks-builds

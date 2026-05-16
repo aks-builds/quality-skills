@@ -1,0 +1,5 @@
+{
+  "name": "quality-skills",
+  "version": "1.0.0",
+  "description": "Quality engineering skills for QA engineers, SDETs, and test automation leads — covering frontend (Selenium/Cypress/Playwright), API (Postman/REST Assured/Karate), performance (k6/JMeter/Gatling), mobile (Appium), BDD, accessibility, visual regression, security, chaos, contract testing, CI orchestration, and quality strategy"
+}

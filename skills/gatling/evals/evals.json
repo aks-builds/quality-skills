@@ -1,0 +1,86 @@
+{
+  "skill_name": "gatling",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up a Gatling 3.x project in Java using Gradle for our checkout API. SLO: p95 < 300ms at 200 req/s with <0.5% errors.",
+      "expected_output": "Should check qa-context.md or ask. Should outline: add the Gatling Gradle plugin + io.gatling.highcharts:gatling-charts-highcharts dep, place Simulations under `src/gatling/java`, write a `CheckoutSimulation` using the Java DSL (`http`, `scenario`, `exec`, `injectOpen`, `constantUsersPerSec(200).during(300)`, `assertions(global().responseTime().percentile3().lt(300), global().failedRequests().percent().lt(0.5))`). Should mention `./gradlew gatlingRun-com.example.CheckoutSimulation` to run, with `-Dbase_url=...` to parameterize. Should use open injection for the RPS-shaped SLO. Should NOT invent DSL method names.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Uses Java DSL imports and patterns",
+        "Uses injectOpen with constantUsersPerSec for RPS shape",
+        "Sets assertions matching the SLO",
+        "Names Gatling Gradle plugin command",
+        "Parameterizes base URL via system property",
+        "Does not invent DSL methods"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Gatling test uses constantConcurrentUsers(100) and reports throughput around 30 req/s. The SLO target was 200 req/s. What's wrong?",
+      "expected_output": "Should explain the closed-vs-open distinction: `constantConcurrentUsers` holds concurrency, not throughput. With response time around ~3s, 100 concurrent users yields ~33 RPS. To hold throughput, switch to open injection: `injectOpen(constantUsersPerSec(200).during(...))`. Gatling spawns whatever VU count is needed to maintain rate. Should warn that an arrival-rate of 200 with very slow backend responses can quickly accumulate in-flight requests — set sensible timeouts and watch the connection pool. Cross-reference k6 for the same conceptual issue.",
+      "assertions": [
+        "Identifies closed model as the cause",
+        "Recommends switching to injectOpen + constantUsersPerSec",
+        "Warns about in-flight accumulation under arrival-rate",
+        "Cross-references k6 closed/open model concept",
+        "Does not invent injection profile names"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i feed a list of test users from a csv into my gatling simulation",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce `FeederBuilder<String> users = csv(\"users.csv\").circular();` (or `.random()`, `.queue()`, `.shuffle()`), use `.feed(users)` in the scenario, and reference values via Gatling EL: `#{email}`, `#{password}`. Should mention the CSV must live somewhere Gatling can find at runtime (resources dir). Should remind to use synthetic credentials and to not commit production user data. Should warn about per-feeder iteration strategies (queue runs out, circular wraps, random has bias).",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows csv() with iteration strategy",
+        "Uses .feed() in scenario and #{var} EL",
+        "Mentions resources/CSV location",
+        "Warns about iteration strategy differences",
+        "Uses synthetic credentials"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We want to run the same scenario from Gatling AND from Karate's regression tests, without duplicating the request definitions.",
+      "expected_output": "Should introduce `karate-gatling`: add the karate-gatling dependency, write a Gatling Simulation (Scala) that uses `karateProtocol(...)` and `karateFeature(\"classpath:features/x.feature\")` inside a scenario, then inject users as usual. The Karate feature is the single source of truth; the Gatling Simulation only declares load shape. Should remind that this couples regression and load — changes to the feature change both, which is the point. Cross-reference karate skill for feature-side patterns.",
+      "assertions": [
+        "Introduces karate-gatling",
+        "Shows karateProtocol + karateFeature usage",
+        "Explains the single-source-of-truth benefit",
+        "Cross-references karate skill",
+        "Does not invent integration APIs"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Gatling reports pass on local but fail in CI because the perf environment is slower. How should we handle this?",
+      "expected_output": "Should explain the right framing: assertions should be tuned to the *target environment*. Don't pretend local laptop perf reflects perf-env perf. Options: (1) set CI assertions based on perf-env baselines, not local; (2) maintain two property files / profiles (`local-assertions.properties`, `ci-assertions.properties`); (3) run a baseline calibration job once on the perf env and bake those thresholds into the CI gate; (4) consider whether the slow CI env is fit for purpose — if it's not representative of production, the test results are misleading regardless of pass/fail. Should defer to qa-context.md for environment ownership.",
+      "assertions": [
+        "Identifies env-specific tuning as the right approach",
+        "Suggests profile-based assertion files",
+        "Recommends baseline calibration on the perf env",
+        "Questions whether the env is representative",
+        "Defers to qa-context.md for environment context"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Compare Gatling and k6 for our team. We have JVM expertise but our test suite is moving toward TypeScript.",
+      "expected_output": "Should give a balanced trade-off. Gatling strengths in this context: JVM-native, leverages existing expertise, code-first refactorable Simulations, mature reporting. k6 strengths: TypeScript-native (aligns with the suite direction), single-binary, lower-overhead per VU, modern observability integration. Recommend evaluating: developer experience for the TS-focused engineers writing perf tests, CI run time / cost, and which tool the on-call team prefers when reading reports at 2am. Suggest a pilot writing one scenario in each. Defer final call to qa-context.md.",
+      "assertions": [
+        "Frames as a trade-off",
+        "Names concrete strengths of each in context",
+        "Recommends a pilot",
+        "Defers to qa-context.md",
+        "Cross-references k6"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "skill_name": "testcontainers",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a Spring Boot service with Postgres. We've been using H2 in-memory for tests but production bugs keep slipping through. Should we switch to Testcontainers?",
+      "expected_output": "Should check qa-context.md or ask. Should clearly say yes — H2 in-memory has well-known query/dialect divergence from real Postgres (JSON operators, full-text search, locking semantics, window functions). Recommend: (1) add Testcontainers JUnit Jupiter dependency + Postgres module; (2) use `@Testcontainers` + `@Container static PostgreSQLContainer<?>` with a pinned `postgres:16.4` image to match prod; (3) wire via `@DynamicPropertySource` to inject the JDBC URL into Spring's environment; (4) keep per-class container scope with transactional rollback per test for speed. Should mention pinning the Postgres image version to match production. Should use synthetic credentials. Cross-references junit-testng and test-data-management.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Strongly recommends switching from H2",
+        "Names concrete divergence points (JSON, locking, dialect)",
+        "Shows @Testcontainers + @Container static pattern",
+        "Uses @DynamicPropertySource for Spring",
+        "Pins Postgres image version",
+        "Cross-references junit-testng and test-data-management",
+        "Uses synthetic credentials"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Each of our 200 integration tests starts a fresh Postgres. Suite takes 25 minutes. Better approach?",
+      "expected_output": "Should diagnose per-method containers as the bottleneck. Recommend per-class containers (`@Container static`) — one Postgres per class, many tests share it. For isolation, use transactional rollback per test or truncate-tables-per-test. For further speed: session-scoped container shared across all tests with per-test transactions; or one container with per-worker schemas if running in parallel. Should mention `--withReuse(true)` for local dev (NOT CI). Should also mention pre-pulling the image in CI so it's cached. Cross-references test-data-management for the per-test isolation pattern.",
+      "assertions": [
+        "Identifies per-method containers as bottleneck",
+        "Recommends per-class containers with transactional rollback",
+        "Mentions session-scoped + per-worker schema for parallel",
+        "Notes withReuse is local-only",
+        "Recommends image pre-pulling in CI",
+        "Cross-references test-data-management"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i test our s3 upload code without hitting real aws",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should introduce LocalStack via Testcontainers' `LocalStackContainer` — emulates AWS services locally (S3, SQS, SNS, DynamoDB, etc.). Show: enable the S3 service via `.withServices(LocalStackContainer.Service.S3)`, get endpoint via `container.getEndpointOverride(S3)` and configure your AWS SDK client to use that endpoint. Should mention using a fixed-region (`us-east-1`) and synthetic credentials. Cross-references wiremock as a different alternative for HTTP-only flows.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Introduces LocalStack via LocalStackContainer",
+        "Shows S3 service enablement",
+        "Shows endpoint override pattern",
+        "Uses synthetic credentials",
+        "Cross-references wiremock"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our Testcontainers tests pass locally but fail in CI with `Could not find a valid Docker environment`.",
+      "expected_output": "Should diagnose: CI runner doesn't have a reachable Docker daemon. Common cases: (1) Docker not installed on the runner — install or use a runner image that includes it; (2) Docker-in-Docker required — set `DOCKER_HOST` correctly; (3) Rootless Docker / Podman socket mismatch — configure Testcontainers' `docker.host` property; (4) GitHub Actions Linux runners have Docker by default, but macOS / Windows runners don't (or don't have it usefully); (5) Testcontainers Cloud as the managed alternative when local Docker isn't viable. Should recommend pinning the Testcontainers library version and verifying with `docker info` from inside the CI runner. Cross-references ci-test-orchestration.",
+      "assertions": [
+        "Identifies missing Docker daemon as root cause",
+        "Names DinD as one solution",
+        "Mentions GHA macOS/Windows runner limitations",
+        "Mentions Testcontainers Cloud as managed alternative",
+        "Recommends docker info diagnostic",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our Kafka container starts but tests fail with 'broker not available' immediately after.",
+      "expected_output": "Should diagnose: wrong wait strategy — the test starts before Kafka is actually ready to accept connections. Default port-open check isn't sufficient for Kafka (port opens before bootstrap completes). Recommend: (1) use `Wait.forLogMessage` matching Kafka's 'started' log line, or `Wait.forListeningPort()` plus an explicit `withStartupTimeout(Duration.ofMinutes(2))`; (2) check the Kafka module's documented wait strategy and follow it; (3) for stubborn cases, add a small client-side retry on bootstrap. Should NOT recommend `Thread.sleep` before the test as the fix.",
+      "assertions": [
+        "Identifies inadequate wait strategy as cause",
+        "Recommends forLogMessage / port + timeout combo",
+        "Recommends consulting module docs",
+        "Suggests client-side retry as fallback",
+        "Refuses Thread.sleep as fix"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use Testcontainers in our unit tests too?",
+      "expected_output": "Should advise against — Testcontainers is for integration tests, not unit tests. Unit tests should test logic in isolation with mocks / fakes (cross-reference test-strategy for the pyramid framing). Reasons: (1) every Testcontainers test pays for container startup (seconds vs. ms); (2) unit tests grow into integration tests by accident, blurring the layer; (3) thousands of unit tests × container startup = unworkable CI time. Recommend keeping Testcontainers at the integration-test layer and using fakes / mocks for unit-layer dependencies. Cross-references test-strategy.",
+      "assertions": [
+        "Advises against Testcontainers in unit tests",
+        "Names speed and layer separation as reasons",
+        "Recommends keeping fakes/mocks for unit layer",
+        "Cross-references test-strategy",
+        "Does not pretend it would work fine"
+      ],
+      "files": []
+    }
+  ]
+}

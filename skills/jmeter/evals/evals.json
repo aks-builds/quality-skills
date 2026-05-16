@@ -1,0 +1,86 @@
+{
+  "skill_name": "jmeter",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We inherited a JMeter test plan with 300 thread groups and they all run from a Jenkins job that uses the GUI. Tests take forever and crash on big runs. Where do we start?",
+      "expected_output": "Should check qa-context.md or ask. Should call out the elephant: GUI mode is for design, not load runs. Move to `jmeter -n -t plan.jmx -l results.jtl` non-GUI mode immediately. Should next call out listeners in the plan — remove all View Results Tree / Summary Report listeners; replace with Backend Listener to InfluxDB / Prometheus for live metrics. Should suggest parameterizing hardcoded values via `-J` properties so the same plan runs against any environment. Should mention pinning JMeter version. Should defer migration-away decisions to qa-context.md.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Identifies GUI-mode load testing as a critical issue",
+        "Recommends removing listeners and using Backend Listener",
+        "Recommends parameterizing via -J properties",
+        "Recommends pinning JMeter version",
+        "Honest about migration trade-offs rather than auto-recommending it"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our SLO is 500 RPS. We have a Thread Group with 500 threads and ramp-up 60s. The run shows actual throughput of 180 RPS. Why?",
+      "expected_output": "Should explain JMeter's classic closed model: 500 threads ≠ 500 RPS. Each thread waits for the previous response before starting the next iteration; if response time is ~3s, you get ~166 RPS. To hold throughput regardless of response time, use the **Concurrency Thread Group** or **Stepping Thread Group** plugins (open model), or use the **Constant Throughput Timer** with enough threads. Should recommend the Concurrency Thread Group for the user's RPS goal and explain `maxVUs`-like properties. Should NOT recommend just adding more threads as a fix.",
+      "assertions": [
+        "Explains closed model vs open model",
+        "Recommends Concurrency Thread Group / Stepping Thread Group",
+        "Names Constant Throughput Timer as alternative",
+        "Refuses 'just add more threads' as the fix",
+        "Does not invent plugin names"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i run jmeter against staging from github actions",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should produce a GHA step that downloads a pinned JMeter version, runs in non-GUI mode with `-J` overrides for staging URL and credentials (injected from GitHub secrets), generates a dashboard via `-e -o report`, and uploads it as an artifact. Should remind to pin the JMeter version (don't use `latest`), to keep secrets out of the .jmx file, and to set timeouts. Should cross-reference ci-test-orchestration.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Shows GHA step with pinned JMeter version",
+        "Uses -J overrides for env-specific values",
+        "Injects secrets from GitHub secrets",
+        "Generates dashboard via -e -o",
+        "Uploads as artifact",
+        "Cross-references ci-test-orchestration"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Should we migrate from JMeter to k6 or Gatling for our new microservices?",
+      "expected_output": "Should frame as a trade-off. JMeter: GUI, mature, broad protocol support, organizational momentum if you have JMeter experts. k6/Gatling: code-first, readable diffs, faster iteration, modern observability integrations. Should suggest a pilot: pick one critical flow, write it in k6 (or Gatling) AND keep the JMeter version, run both, measure: developer time, run time, result quality, observability ergonomics. Decide based on data. Should defer to qa-context.md (team skill, perf SLAs, existing investment). Cross-references k6 and gatling.",
+      "assertions": [
+        "Frames as trade-off, not a winner",
+        "Recommends a pilot to gather data",
+        "Defers to qa-context.md",
+        "Cross-references k6 and gatling",
+        "Honest about JMeter's strengths"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our JMeter result file is 20 GB and we can't open it. How do we cut that down?",
+      "expected_output": "Should explain that JTL files default to verbose sample-by-sample output. Recommend (1) trimming JTL fields via the `jmeter.save.saveservice.*` properties in `jmeter.properties` (or `user.properties`) to drop headers, response data, samplers details you don't need; (2) using the dashboard generator to summarize and then discarding the raw JTL; (3) switching to Backend Listener for live metrics that don't accumulate to disk; (4) using JTL pruning tools or `awk`/`grep` to extract a representative slice before opening. Should NOT recommend opening the file as-is.",
+      "assertions": [
+        "Names jmeter.save.saveservice.* properties for trimming",
+        "Recommends dashboard generator post-run",
+        "Recommends Backend Listener for ongoing perf programs",
+        "Suggests slicing techniques for emergency inspection",
+        "Does not suggest opening the 20GB file directly"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "We need a non-coder QA tester to write JMeter scripts. What's a sane workflow?",
+      "expected_output": "Should explain a viable workflow: the QA tester uses the JMeter GUI to design the plan (recording via Test Script Recorder if useful), then commits the resulting `.jmx`. Engineers review the diff (acknowledging XML diffs are noisy) and harden the plan: remove listeners, parameterize URLs, add proper assertions, switch to JSR223 Groovy if scripting is needed. CI runs in non-GUI mode. Should mention BlazeMeter Cloud as a hosted GUI alternative for cross-team collaboration if budget allows. Should be honest that this hybrid workflow has friction — if the engineering side is significant, consider whether k6 / Gatling with simpler scripts would be a better long-term home.",
+      "assertions": [
+        "Describes a GUI-design, CLI-run, code-reviewed workflow",
+        "Honest about JMX diff friction",
+        "Mentions Backend Listener / dashboard generator for review of results",
+        "Open to suggesting migration if friction is large",
+        "Does not pretend the hybrid is free"
+      ],
+      "files": []
+    }
+  ]
+}

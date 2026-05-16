@@ -1,0 +1,90 @@
+{
+  "skill_name": "accessibility-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're a public-facing SaaS. We need to be WCAG 2.1 AA compliant. Where do we start?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend: (1) baseline scan with axe (axe-core CLI or Lighthouse) on critical pages to gather current gap; (2) triage findings by severity (blockers like keyboard traps and missing labels first); (3) integrate `@axe-core/playwright` or `cypress-axe` into existing E2E tests, failing on violations; (4) introduce a per-PR rule preventing new violations (existing technical debt grandfathered); (5) schedule a manual audit cycle — keyboard testing + NVDA / JAWS / VoiceOver — quarterly; (6) consider an external audit before regulatory cycle. Should warn that axe catches ~30-50%, manual testing is required. Should mention EAA (June 2025) and ADA lawsuit context if relevant. Cross-references playwright / cypress.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends baseline scan",
+        "Recommends integrating axe into existing E2E",
+        "Recommends manual audit cycle with real AT",
+        "Mentions 30-50% automation coverage limitation",
+        "Mentions regulatory context (EAA, ADA)",
+        "Cross-references playwright/cypress",
+        "Recommends prevention-of-new + grandfathering existing"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Lighthouse accessibility score is 100. Are we WCAG 2.1 AA compliant?",
+      "expected_output": "Should clearly say no — a perfect Lighthouse score doesn't mean WCAG compliance. Lighthouse (and axe) catch a subset of automation-detectable issues; many WCAG criteria (focus order, alt text quality, screen-reader UX, error messaging clarity, reading order) require human judgment and AT testing. Recommend: (1) do not claim compliance based on automated scores; (2) commission a manual audit by a qualified accessibility tester; (3) test with real AT (NVDA / JAWS / VoiceOver / TalkBack) on critical flows; (4) understand the Lighthouse score reports a small set of automated checks, not full WCAG conformance. Should NOT pretend the 100 score equals compliance.",
+      "assertions": [
+        "Clearly states 100 score != compliance",
+        "Names criteria that require human judgment",
+        "Recommends manual audit",
+        "Recommends real AT testing",
+        "Refuses compliance claim based on automated score"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i scan our component library for a11y issues",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should recommend per-component scanning rather than per-page: (1) for Storybook, use `@storybook/addon-a11y` for interactive feedback and CI scans; (2) for Jest / Vitest, use `jest-axe` to run axe against rendered components in unit tests; (3) for component-level visual + a11y, combine with Chromatic / Percy (cross-reference visual-regression); (4) catch issues at the component level before they propagate to every page using the component. Should also mention that component-level scans miss page-level / interaction-level issues (focus order, modal traps) — pair with page-level scans. Cross-references jest-vitest and visual-regression.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Recommends @storybook/addon-a11y for component lib",
+        "Recommends jest-axe for component-level testing",
+        "Notes component scans miss page-level issues",
+        "Cross-references jest-vitest and visual-regression",
+        "Does not pretend component scans are sufficient alone"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Our designer wants to remove the focus outline because it 'looks bad.' How do we push back?",
+      "expected_output": "Should clearly push back: visible focus indicators are a WCAG 2.4.7 (AA) requirement and a hard accessibility regression. Without focus indicators, keyboard-only users have no idea where they are. Recommend: (1) keep a visible focus indicator — it doesn't have to be the default browser outline, but it must be visible; (2) design a custom focus style that fits the brand AND meets contrast requirements; (3) `:focus-visible` lets you show focus only for keyboard navigation (not mouse clicks) if the mouse-click outline is the actual concern; (4) cite WCAG 2.4.7 and 2.4.11 (Focus Not Obscured) in the conversation. Should NOT recommend removing focus indicators.",
+      "assertions": [
+        "Pushes back against removing focus indicators",
+        "Cites WCAG 2.4.7 / 2.4.11",
+        "Suggests custom focus style as compromise",
+        "Mentions :focus-visible",
+        "Refuses to remove indicators entirely"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our axe scan shows 250 violations. Engineers want to disable rules to make CI pass. Bad idea?",
+      "expected_output": "Should clearly say yes, bad idea. Disabling rules hides real accessibility issues. Recommend: (1) triage violations by severity — many are likely duplicates of one component used in many places; (2) fix the high-impact ones (keyboard traps, missing labels, contrast) first; (3) for known-deferred items, use precise exceptions (`data-axe-exclude` on specific elements, or per-page disabled-rule with a comment + ticket), not blanket rule disables; (4) introduce a baseline so existing debt is grandfathered but new violations fail the build; (5) build a remediation roadmap. Should warn that disabling rules creates legal liability for public-facing products in regulated jurisdictions. Cross-references the triage section.",
+      "assertions": [
+        "Strongly advises against disabling rules wholesale",
+        "Recommends triage by severity",
+        "Recommends grandfathering existing + preventing new",
+        "Recommends precise per-element exceptions",
+        "Mentions legal liability for public-facing products",
+        "Does not endorse blanket disable"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "How do we test our React Native app for accessibility?",
+      "expected_output": "Should outline mobile-specific approach: (1) ensure components set `accessibilityLabel`, `accessibilityHint`, `accessibilityRole`, `accessible={true}` correctly; (2) manual testing with VoiceOver (iOS) and TalkBack (Android) — different AT, different behavior, both required; (3) use Accessibility Inspector (iOS dev tools) and Accessibility Scanner (Android) during development; (4) Detox or Maestro can assert on accessibility props but can't substitute for real-AT testing; (5) test with system-level zoom and bold text; (6) test with `prefers-reduced-motion` enabled. Should warn that mobile accessibility automation is weaker than web — manual AT testing is even more important. Cross-references detox and maestro.",
+      "assertions": [
+        "Names accessibilityLabel/Hint/Role/accessible props",
+        "Recommends VoiceOver + TalkBack manual testing",
+        "Names Accessibility Inspector + Scanner dev tools",
+        "Notes Detox/Maestro for prop assertions but not substitute",
+        "Mentions system-level zoom and bold text",
+        "Cross-references detox and maestro",
+        "Warns mobile automation is weaker than web"
+      ],
+      "files": []
+    }
+  ]
+}

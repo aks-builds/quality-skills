@@ -1,0 +1,85 @@
+{
+  "skill_name": "wiremock",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a Java service that calls a third-party billing API. The third-party sandbox is flaky and rate-limited, so our integration tests fail randomly. How should we use WireMock?",
+      "expected_output": "Should check qa-context.md or ask. Should recommend embedded WireMock for these tests: use the JUnit 5 `@WireMockTest` extension or programmatic `WireMockServer`, point the billing client at the WireMock base URL via config, and `stubFor(...)` the endpoints the test exercises. Should provide a concrete example with stubFor, JSON body matchers, and verify(...). Should warn that stubs aren't contracts — if the real third party changes, stubs lie silently — so pair with a smaller smoke suite against the real sandbox. Should use synthetic charge IDs and amounts.",
+      "assertions": [
+        "Reads qa-context.md or asks for it",
+        "Recommends embedded WireMock via @WireMockTest",
+        "Shows stubFor + matchers + verify usage",
+        "Recommends pointing billing client config at WireMock URL",
+        "Warns that stubs are not contracts",
+        "Suggests a smoke layer against the real sandbox",
+        "Uses synthetic data"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our login flow needs to: first POST /auth/login returns a token; then GET /me returns user info using that token. How do we set up stateful stubs?",
+      "expected_output": "Should introduce scenarios: `.inScenario('login')`, `.whenScenarioStateIs(Scenario.STARTED)` on the login stub, `.willSetStateTo('logged_in')` to advance; the /me stub gated on `whenScenarioStateIs('logged_in')` and the matching Authorization header. Should remind that scenarios must be reset between tests via `WireMock.resetScenarios()` to avoid bleed. Should use synthetic tokens and IDs. Should NOT invent scenario keywords.",
+      "assertions": [
+        "Introduces scenarios with inScenario / whenScenarioStateIs / willSetStateTo",
+        "Gates the /me stub on the post-login state",
+        "Reminds to reset scenarios between tests",
+        "Uses synthetic tokens",
+        "Does not invent API methods"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "how do i run wiremock for our python test suite",
+      "expected_output": "Should treat the casual phrasing as a valid trigger. Should recommend standalone mode (Docker is the simplest): `docker run -p 8080:8080 -v ./mappings:/home/wiremock/mappings wiremock/wiremock:<pinned-version>`. Should explain that mappings are JSON files in the mounted folder, and Python tests just point their HTTP client at `http://localhost:8080`. Should mention that for purely in-process Python mocking, `responses` or `respx` is often simpler — WireMock standalone is best when stubs are shared across languages/teams or used outside tests. Cross-reference pytest-api.",
+      "assertions": [
+        "Triggers on casual lowercase phrasing",
+        "Recommends Docker standalone with mounted mappings folder",
+        "Mentions pinning the image version",
+        "Mentions responses/respx as the in-process alternative",
+        "Cross-references pytest-api"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We recorded mappings against a real staging API and committed them. Now tests are super strict and break when staging returns a new field. What now?",
+      "expected_output": "Should explain that recorded mappings tend to over-constrain — they capture every field, header, and dynamic value. Recommend triaging the mappings: remove fields the consumer doesn't care about, replace literal values with matchers (`matching(...)`, `equalToJson(..., ignoreArrayOrder=true, ignoreExtraElements=true)`), and remove headers that vary (correlation IDs, timestamps). Should remind to scan for committed secrets before merging recordings. Should suggest deliberate hand-written stubs over recorded ones when the API is well-understood.",
+      "assertions": [
+        "Diagnoses over-strict recordings as the cause",
+        "Recommends switching to matchers and ignore-extra flags",
+        "Warns about committed secrets in recordings",
+        "Suggests hand-written stubs as the long-term preferred option",
+        "Does not pretend recordings are always production-ready"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We need to test how our service handles when the downstream times out. Can WireMock simulate that?",
+      "expected_output": "Should explain WireMock's delay and fault primitives: `.withFixedDelay(ms)` for predictable delay, `.withChunkedDribbleDelay(...)` for slow drip, `.withFault(Fault.X)` for connection-level issues (RESET_BY_PEER, EMPTY_RESPONSE, MALFORMED_RESPONSE_CHUNK). Should give a concrete stub that delays long enough to trigger the service's configured timeout, and a test that asserts the right error/retry behavior. Should warn that delays in a CI suite add up — scope them to dedicated timeout tests, not the happy path.",
+      "assertions": [
+        "Names withFixedDelay and withFault with specific Fault values",
+        "Shows a stub that triggers the service's timeout",
+        "Suggests scoping delays to specific tests",
+        "Does not invent fault enum values",
+        "Cross-references chaos-engineering for broader failure injection"
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Should we use WireMock or Pact?",
+      "expected_output": "Should explain the difference: WireMock virtualizes services — useful when you want to test the consumer in isolation against a fake. Pact verifies a contract — both consumer and provider check they agree on the shape, gated via a broker. WireMock stubs don't bind the real provider; they can drift silently. Pact binds both sides. They solve different problems and often complement: WireMock for isolation in fast tests, Pact for cross-team deployment safety. Should defer to qa-context.md (multi-team microservices favor Pact; isolated unit-style integration favors WireMock). Cross-reference pact-contract-testing.",
+      "assertions": [
+        "Distinguishes virtualization vs contract testing clearly",
+        "Names independent deployment as the Pact signal",
+        "Suggests they can coexist",
+        "Defers to qa-context.md",
+        "Cross-references pact-contract-testing"
+      ],
+      "files": []
+    }
+  ]
+}
