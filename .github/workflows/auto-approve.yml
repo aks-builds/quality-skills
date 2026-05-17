@@ -1,0 +1,13 @@
+name: Auto-approve
+
+# Calls the reusable workflow in aks-builds/workflows.
+# Approves only PRs opened by aks-builds; silently skips all others.
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, synchronize, reopened]
+
+jobs:
+  call:
+    uses: aks-builds/workflows/.github/workflows/auto-approve.yml@main
+    secrets: inherit
