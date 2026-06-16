@@ -12,5 +12,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.27.0"
   }
 }
