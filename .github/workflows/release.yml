@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get skill count
+        id: count
+        run: |
+          COUNT=$(ls -d skills/*/ 2>/dev/null | wc -l | tr -d ' ')
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+
+      - name: Update skills badge in README
+        run: |
+          TAG="${{ github.ref_name }}"
+          COUNT="${{ steps.count.outputs.count }}"
+          sed -i "s|skills-[0-9]*-brightgreen|skills-${COUNT}-brightgreen|g" README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "chore: update skill count badge to ${COUNT} [skip ci]"
+          git push origin HEAD:main
+
+      - name: Update marketplace.json version
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          node -e "
+            const fs = require('fs');
+            const p = '.claude-plugin/marketplace.json';
+            const json = JSON.parse(fs.readFileSync(p, 'utf8'));
+            json.metadata.version = '${VERSION}';
+            fs.writeFileSync(p, JSON.stringify(json, null, 2) + '\n');
+          "
+          git add .claude-plugin/marketplace.json
+          git diff --cached --quiet || git commit -m "chore: bump marketplace.json to ${VERSION} [skip ci]"
+          git push origin HEAD:main
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            NOTES=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges)
+          else
+            NOTES=$(git log --pretty=format:"- %s" --no-merges | head -50)
+          fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const count = '${{ steps.count.outputs.count }}';
+            const notes = `${{ steps.notes.outputs.notes }}`;
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `${tag} — ${count} skills`,
+              body: `## Changes\n\n${notes}\n\n## Install\n\n\`\`\`bash\n/plugin marketplace add aks-builds/quality-skills\n/plugin install quality-skills\n\`\`\``,
+              draft: false,
+              prerelease: false,
+            });
