@@ -1,0 +1,108 @@
+name: Eval Skills
+
+on:
+  workflow_dispatch:
+  # Uncomment below once ANTHROPIC_API_KEY secret is added to repo secrets:
+  # pull_request:
+  #   paths:
+  #     - 'skills/**/evals/**'
+  #     - 'skills/**/SKILL.md'
+  # schedule:
+  #   - cron: '0 6 * * 1'
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'mcp/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: mcp
+
+      - name: Run evals
+        id: run_evals
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          node --input-type=module << 'EVALSCRIPT'
+          import { readFileSync, readdirSync, writeFileSync } from 'fs';
+          import { join } from 'path';
+          import Anthropic from '@anthropic-ai/sdk';
+
+          const client = new Anthropic();
+          const SKILLS_DIR = 'skills';
+          const PASS_THRESHOLD = 0.8;
+          const results = [];
+
+          for (const dir of readdirSync(SKILLS_DIR, { withFileTypes: true })) {
+            if (!dir.isDirectory()) continue;
+            const evalsPath = join(SKILLS_DIR, dir.name, 'evals', 'evals.json');
+            let evals;
+            try {
+              evals = JSON.parse(readFileSync(evalsPath, 'utf8'));
+            } catch { continue; }
+
+            const skillContent = readFileSync(join(SKILLS_DIR, dir.name, 'SKILL.md'), 'utf8');
+            let passed = 0;
+            const total = (evals.scenarios || []).length;
+
+            for (const scenario of (evals.scenarios || [])) {
+              const response = await client.messages.create({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 200,
+                system: 'You are a judge. Given a skill document and a scenario, reply PASS if the skill adequately covers the scenario, or FAIL if it does not. Reply only PASS or FAIL.',
+                messages: [{
+                  role: 'user',
+                  content: `Skill:\n${skillContent}\n\nScenario: ${scenario.prompt}\n\nExpected coverage: ${scenario.expected_coverage}`,
+                }],
+              });
+              if (response.content[0].text.trim().startsWith('PASS')) passed++;
+            }
+
+            const score = total > 0 ? passed / total : 1;
+            results.push({ skill: dir.name, score, passed, total });
+          }
+
+          const failed = results.filter(r => r.score < 0.8);
+          const rows = results.map(r =>
+            `| ${r.skill} | ${r.passed}/${r.total} | ${(r.score * 100).toFixed(0)}% | ${r.score >= 0.8 ? '✅' : '❌'} |`
+          ).join('\n');
+
+          const summary = `## Eval Results\n\n| Skill | Passed | Score | Status |\n|---|---|---|---|\n${rows}\n\n**${failed.length === 0 ? 'All skills pass eval threshold (≥80%).' : `${failed.length} skill(s) below 80%: ${failed.map(f => f.skill).join(', ')}`}**`;
+
+          const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+          if (summaryFile) writeFileSync(summaryFile, summary);
+          else console.log(summary);
+
+          if (failed.length > 0) {
+            process.exit(1);
+          }
+          EVALSCRIPT
+
+      - name: Post eval summary to PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+            if (!summaryFile || !fs.existsSync(summaryFile)) return;
+            const body = fs.readFileSync(summaryFile, 'utf8');
+            if (!body.trim()) return;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

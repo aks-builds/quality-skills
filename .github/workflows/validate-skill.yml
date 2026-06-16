@@ -157,3 +157,77 @@ jobs:
 
           if [ "$fail" -ne 0 ]; then exit 1; fi
           echo "::notice::OK $SKILL_NAME evals ($EVAL_COUNT scenarios)"
+
+      - name: Install gray-matter for v2 validation
+        if: contains(github.head_ref, 'v2') || github.ref == 'refs/heads/main'
+        run: npm install gray-matter
+
+      - name: Validate v2 frontmatter fields
+        if: contains(github.head_ref, 'v2') || github.ref == 'refs/heads/main'
+        run: |
+          node --input-type=module << 'EOF'
+          import { readFileSync, readdirSync } from 'fs';
+          import { join } from 'path';
+          import matter from 'gray-matter';
+
+          const SKILLS_DIR = 'skills';
+          const REQUIRED_V2 = ['depends_on', 'tags', 'audience', 'bundle', 'mcp_tools'];
+          const VALID_BUNDLES = ['quality-skills', 'healthcare-skills'];
+          const errors = [];
+
+          for (const dir of readdirSync(SKILLS_DIR, { withFileTypes: true })) {
+            if (!dir.isDirectory()) continue;
+            const skillPath = join(SKILLS_DIR, dir.name, 'SKILL.md');
+            let fm;
+            try {
+              fm = matter(readFileSync(skillPath, 'utf8')).data;
+            } catch {
+              errors.push(`${dir.name}: cannot read SKILL.md`);
+              continue;
+            }
+
+            for (const field of REQUIRED_V2) {
+              if (fm[field] === undefined) {
+                errors.push(`${dir.name}: missing required v2 field "${field}"`);
+              }
+            }
+
+            if (fm.tags && (!Array.isArray(fm.tags) || fm.tags.length < 2)) {
+              errors.push(`${dir.name}: "tags" must be an array with at least 2 items`);
+            }
+            if (fm.audience && (!Array.isArray(fm.audience) || fm.audience.length < 1)) {
+              errors.push(`${dir.name}: "audience" must be a non-empty array`);
+            }
+            if (fm.bundle && !VALID_BUNDLES.includes(fm.bundle)) {
+              errors.push(`${dir.name}: "bundle" must be one of ${VALID_BUNDLES.join(', ')}`);
+            }
+            if (fm.mcp_tools && !Array.isArray(fm.mcp_tools)) {
+              errors.push(`${dir.name}: "mcp_tools" must be an array`);
+            }
+            if (Array.isArray(fm.mcp_tools)) {
+              if (fm.mcp_tools.length < 2 || fm.mcp_tools.length > 3) {
+                errors.push(`${dir.name}: "mcp_tools" must have 2–3 entries, found ${fm.mcp_tools.length}`);
+              }
+              for (const tool of fm.mcp_tools) {
+                if (!tool.name || !tool.description || !tool.input_schema) {
+                  errors.push(`${dir.name}: mcp_tools entry missing name, description, or input_schema`);
+                  continue;
+                }
+                const schema = tool.input_schema;
+                if (typeof schema !== 'object' || schema === null) {
+                  errors.push(`${dir.name} ${tool.name}: input_schema must be a JSON Schema object`);
+                } else if (schema.type !== 'object') {
+                  errors.push(`${dir.name} ${tool.name}: input_schema.type must be "object"`);
+                } else if (!schema.properties || typeof schema.properties !== 'object') {
+                  errors.push(`${dir.name} ${tool.name}: input_schema must have a "properties" object`);
+                }
+              }
+            }
+          }
+
+          if (errors.length > 0) {
+            console.error('v2 frontmatter validation failed:\n' + errors.join('\n'));
+            process.exit(1);
+          }
+          console.log(`All skills pass v2 frontmatter validation.`);
+          EOF
