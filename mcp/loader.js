@@ -19,6 +19,8 @@ export async function loadSkillContent(skillName, allSkills) {
   return skill.content;
 }
 
+// Resolves one level of depends_on. Transitive (multi-hop) dependencies are not traversed —
+// if a depended-on skill itself has depends_on, those are silently excluded.
 export async function resolveSkillGraph(skill, allSkills) {
   const deps = Array.isArray(skill.depends_on) ? skill.depends_on : [];
   const depContents = await Promise.all(

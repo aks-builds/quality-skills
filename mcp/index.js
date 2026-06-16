@@ -13,6 +13,10 @@ import { resolveSkillGraph } from './loader.js';
 const skills = await loadAllSkills();
 const toolManifest = buildToolManifest(skills);
 
+if (skills.length === 0) {
+  process.stderr.write('WARNING: No skills loaded — check that the skills/ directory exists and contains valid SKILL.md files.\n');
+}
+
 const server = new Server(
   { name: 'quality-skills', version: '2.0.0' },
   { capabilities: { resources: {}, tools: {} } }
@@ -51,7 +55,11 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => ({
 }));
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const skillName = request.params.uri.replace('skills://', '');
+  const uri = request.params.uri;
+  if (!uri.startsWith('skills://')) {
+    throw new Error(`Unsupported URI scheme: ${uri}`);
+  }
+  const skillName = uri.slice('skills://'.length);
   const skill = skills.find(s => s.name === skillName);
   if (!skill) {
     throw new Error(`Resource not found: ${request.params.uri}`);
