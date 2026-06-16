@@ -4,10 +4,20 @@
 
 Five fields added to every skill's YAML frontmatter. All are required in v2.
 
+| Field | Type | Constraint |
+|---|---|---|
+| `depends_on` | array of strings | Empty array `[]` allowed; cross-bundle deps not supported |
+| `tags` | array of strings | Min 2, max 8; lowercase kebab-case |
+| `audience` | array of strings | Min 1; values from the valid-values list |
+| `bundle` | string | Must match GitHub repo name exactly |
+| `mcp_tools` | array of objects | Min 2, max 3; each needs name + description + input_schema |
+
 ### `depends_on` (array of strings)
 
 Explicit skill dependency chain. The MCP skill-graph resolver loads these before
 the current skill's content.
+
+If a named dependency skill is not found in the current bundle, the MCP server logs a warning and continues without it — cross-bundle dependencies are not supported.
 
 ```yaml
 depends_on:
@@ -40,7 +50,7 @@ audience:
 
 ### `bundle` (string)
 
-Which repo/plugin this skill belongs to. Must match the repo name exactly.
+Which repo/plugin this skill belongs to. Must match the GitHub repository name exactly (the value after `aks-builds/` in the repo URL, e.g., `quality-skills` for `github.com/aks-builds/quality-skills`). The CI validator compares this field against the known repo name at validation time.
 
 ```yaml
 bundle: quality-skills
@@ -50,13 +60,35 @@ Valid values: `quality-skills`, `healthcare-skills`
 
 ### `mcp_tools` (array of objects)
 
-Typed MCP tool declarations. Each skill declares 2–3 tools. Each tool must have
-`name`, `description`, and `input_schema` (valid JSON Schema object).
+Typed MCP tool declarations. Each tool must have `name`, `description`, and
+`input_schema` (valid JSON Schema object).
 
 Tool names must follow the pattern `<skill_name_underscored>_<action>`.
 
-**Action vocabulary:** `scaffold`, `debug`, `audit`, `migrate`, `checklist`,
-`validate`, `generate`, `troubleshoot`
+> **Constraints:** `minItems: 2` — every skill must declare at least 2 tools.
+> `maxItems: 3` — no more than 3 tools per skill.
+
+**Action vocabulary:**
+
+| Action | Use for |
+|---|---|
+| `scaffold` | Generate starter code or configuration from scratch |
+| `debug` | Diagnose a failure, error, or unexpected behaviour |
+| `audit` | Review existing code/config for issues, anti-patterns, or gaps |
+| `migrate` | Convert from one tool/version/format to another |
+| `checklist` | Generate a compliance or readiness checklist |
+| `validate` | Check a document, message, or resource against a specification |
+| `generate` | Produce data, reports, or synthetic artifacts |
+| `troubleshoot` | Step-by-step diagnosis of an integration or runtime issue |
+
+> **Note on `default` in `input_schema`:** The `default` key in `input_schema`
+> is a JSON Schema annotation (draft-07). It is passed through by the MCP server
+> as metadata but is not validated by the CI schema checker. Validators using
+> strict mode should treat it as an annotation-only keyword.
+
+> **Note on `required`:** If all properties are optional, omit the `required`
+> array entirely (do not write `required: []`). If at least one property must be
+> provided, list those property names in `required`.
 
 ```yaml
 mcp_tools:
