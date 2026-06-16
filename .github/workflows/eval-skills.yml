@@ -1,13 +1,14 @@
 name: Eval Skills
 
 on:
-  pull_request:
-    paths:
-      - 'skills/**/evals/**'
-      - 'skills/**/SKILL.md'
-  schedule:
-    - cron: '0 6 * * 1'
   workflow_dispatch:
+  # Uncomment below once ANTHROPIC_API_KEY secret is added to repo secrets:
+  # pull_request:
+  #   paths:
+  #     - 'skills/**/evals/**'
+  #     - 'skills/**/SKILL.md'
+  # schedule:
+  #   - cron: '0 6 * * 1'
 
 jobs:
   eval:
