@@ -1,0 +1,17 @@
+{
+  "name": "quality-skills-mcp",
+  "version": "2.0.0",
+  "description": "MCP server for quality-skills — 106 QA skills as typed tools and resources",
+  "type": "module",
+  "bin": {
+    "quality-skills-mcp": "./index.js"
+  },
+  "scripts": {
+    "test": "node --test index.test.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@anthropic-ai/sdk": "^0.27.0",
+    "gray-matter": "^4.0.3"
+  }
+}
