@@ -25,6 +25,10 @@ agent that speaks [MCP](https://modelcontextprotocol.io) or the
 
 <sub>☝️ Claude Code invoking the <code>playwright_scaffold</code> tool — one of 260+ typed MCP tools in this collection.</sub>
 
+<br/>
+
+<img src="./.github/media/how-it-works.png" width="900" alt="How quality-skills works: install as a Claude Code plugin or MCP server, load skills into a tool manifest, invoke a skill via slash command or a typed MCP tool call, and receive grounded skill content back for writing accurate tests" />
+
 </div>
 
 ---
